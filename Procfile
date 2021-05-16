@@ -1,0 +1,1 @@
+web: waybill-app

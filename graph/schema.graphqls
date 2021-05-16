@@ -1,0 +1,264 @@
+"Тип данных для даты и времени."
+scalar Time
+
+"Роли сервиса."
+enum Role {
+  ADMIN
+  MECHANIC
+  DRIVER
+}
+
+"Пользователь."
+type User {
+  "Идентификатор пользователя."
+  id: ID!
+  "Почта пользователя."
+  email: String!
+  "Номер телефона."
+  phoneNumber: String!
+  "Роль в сервисе."
+  role: Role!
+  "Путевые листы, созданные пользователем."
+  waybills: [Waybill]
+}
+
+"Результат проверки Access Token и пользователь. для которого он был создан."
+type AuthResponse {
+  response: String!
+  user: User!
+}
+
+"Refresh Token для получения нового Access Token и Refresh Token."
+input RefreshToken {
+  response: String!
+}
+
+"Водитель."
+type Driver {
+  "Уникальный идентификатор"
+  id: ID!
+  "Фамилия Имя Отчество"
+  fio: String!
+  "Есть ли сейчас открытый путевой лист или нет."
+  isActive: Boolean!
+}
+
+"Машина."
+type Car {
+  "Уникальный идентификатор."
+  id: ID!
+  "Автомобиль."
+  brand: String!
+  "Гос. номер автомобиля."
+  number: String!
+  "Вид топлива."
+  fuel: String!
+  "Пробег."
+  mileage: Int!
+  "Норма расхода."
+  fuelConsumption: Float!
+  "Остаток топлива."
+  fuelRemaining: Float!
+}
+
+type Waybill {
+  "Идентификатор путевого листа."
+  id: ID!
+  "Идентификатор пользователя."
+  userID: ID!
+  "Идентификатор водителя."
+  driverID: ID!
+  "Идентификатор машины."
+  carID: ID!
+  "Дата и время создания путевого листа."
+  dateStart: Time!
+  "Дата и время закрытия путевого листа."
+  dateEnd: Time!
+  "Показания спидометра при выезде."
+  mileageStart: Int!
+  "Показания спидометра при заезде."
+  mileageEnd: Int
+  "Заправлено топлива."
+  fuelFill: Float!
+  "Расход топлива по факту"
+  fuelConsumptionFact: Float!
+  "Остаток топлива при выезде."
+  fuelRemainingStart: Float!
+  "Остаток топлива при заезде."
+  fuelRemainingEnd: Float
+  "Возможность редактировать путевой лист."
+  isActive: Boolean!
+  "Водитель, к которому относится путевой лист."
+  driver(id: ID! = driverID): Driver!
+  "Пользователь, создавший путевой лист."
+  user(id: ID! = userID): User!
+  "Машина."
+  car(id: ID! = carID): Car!
+}
+
+"Создание нового путевого листа."
+input NewWaybill {
+  "Остаток топлива при выезде."
+  fuelRemaining: Float!
+  "Дата и время создания путевого листа."
+  dateStart: Time
+}
+
+"Обновление существующего путевого листа водителем."
+input UpdateWaybill {
+  "Показания спидометра при заезде."
+  mileageEnd: Int!
+  "Остаток топлива при заезде."
+  fuelRemaining: Float!
+}
+
+"Создание нового пользователя. Только администратор"
+input NewUser {
+  "Почта пользователя. Почта не должна повторяться."
+  email: String!
+  "Номер телефона."
+  phoneNumber: String!
+  "Роль пользователя в сервисе."
+  role: Role
+}
+
+"Обновление данных пользователя."
+input UpdateUser {
+  "Почта пользователя."
+  email: String
+  "Номер телефона."
+  phoneNumber: String
+  "Пароль пользователя. Должен быть не менее 10 символов."
+  password: String
+}
+
+input EditUser {
+  "Почта пользователя."
+  email: String
+  "Номер телефона."
+  phoneNumber: String
+  "Роль пользователя."
+  role: Role
+}
+
+"Вход в сервис обработки путевых листов."
+input Login {
+  "Почта пользователя."
+  email: String!
+  "Пароль пользователя."
+  password: String!
+}
+
+"Создать новую машину."
+input NewCar {
+  "Название машины (бренд и модель)."
+  brand: String!
+  "Гос. номер машины."
+  number: String!
+  "Тип топлива для заправки."
+  fuel: String!
+  "Текущий пробег машины."
+  mileage: Int!
+  "Текущий остаток топлива."
+  fuelRemaining: Float!
+  "Норма расхода топлива."
+  fuelConsumption: Float!
+}
+
+"Обновление данных машины."
+input UpdateCar {
+  "Название машины (бренд и модель)."
+  brand: String
+  "Гос. номер машины."
+  number: String
+  "Топливо для заправки."
+  fuel: String
+  "Текущий пробега машины."
+  mileage: Int
+  "Текущий остаток топлива."
+  fuelRemaining: Float
+  "Норма расхода топлива."
+  fuelConsumption: Float
+}
+
+"Создание нового водителя."
+input NewDriver {
+  "Имя водителя."
+  firstName: String!
+  "Фамилия водителя."
+  secondName: String!
+  "Отчество водителя."
+  patronymic: String
+}
+
+"Обновление данных водителя."
+input UpdateDriver {
+  "Имя водителя."
+  firstName: String
+  "Фамилия водителя."
+  secondName: String
+  "Отчество водителя."
+  patronymic: String
+  "Есть открытый путевой лист или нет."
+  isActive: Boolean
+}
+
+"Редактирование путевого листа. Только для механика."
+input EditWaybill {
+  "Идентификатор пользователя."
+  userID: ID
+  "Идентификатор водителя."
+  driverID: ID
+  "Идентификатор машины."
+  carID: ID
+  "Дата и время создания путевого листа."
+  dateStart: Time
+  "Дата и время закрытия путевого листа."
+  dateEnd: Time
+  "Показания спидометра при выезде."
+  mileageStart: Int
+  "Показания спидометра при заезде."
+  mileageEnd: Int
+  "Заправлено топлива."
+  fuelFill: Float
+  "Расход топлива по факту"
+  fuelConsumptionFact: Float
+  "Остаток топлива при выезде."
+  fuelRemainingStart: Float
+  "Остаток топлива при заезде."
+  fuelRemainingEnd: Float
+  "Возможность редактировать путевой лист."
+  isActive: Boolean
+}
+
+type Mutation {
+  login(input: Login): String!
+  refreshToken: String!
+  logout: String!
+  createUser(input: NewUser!): User!
+  updateUser(id: ID!, input: UpdateUser!): User!
+  editUser(id: ID!, input: EditUser!): User!
+  deleteUser(id: ID!): String!
+  createDriver(input: NewDriver!): Driver!
+  updateDriver(id: ID!, input: UpdateDriver!): Driver!
+  deleteDriver(id: ID!): String!
+  createCar(input: NewCar!): Car!
+  updateCar(id: ID!, input: UpdateCar!): Car!
+  deleteCar(id: ID!): String!
+  createWaybill(input: NewWaybill!): Waybill!
+  updateWaybill(id: ID!, input: UpdateWaybill!): Waybill!
+  editWaybill(id: ID!, input: EditWaybill!): Waybill!
+  deleteWaybill(id: ID!): String!
+}
+
+type Query {
+  allUsers(limit: Int = 10, offset: Int = 0): [User!]!
+  user(id: ID!): User!
+  allDrivers(limit: Int = 10, offset: Int = 0): [Driver!]!
+  driver(id: ID!): Driver!
+  allCars(limit: Int = 10, offset: Int = 0): [Car!]!
+  car(id: ID!): String!
+  allWaybills(limit: Int = 10, offset: Int = 0): [Waybill!]!
+  allWaybillsByUserID(id: ID!, limit: Int = 10, offset: Int = 0): [Waybill!]!
+  waybill(id: ID!): Waybill!
+}
