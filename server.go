@@ -2,12 +2,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/gofiber/fiber/v2/middleware/csrf"
+	"github.com/gofiber/fiber/v2/utils"
 	"os"
 	"time"
-
-	"github.com/gofiber/fiber/v2/utils"
-
-	"github.com/gofiber/fiber/v2/middleware/csrf"
 
 	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/gofiber/fiber/v2/middleware/compress"
@@ -70,7 +68,7 @@ func main() {
 	}))
 
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
-	srv.Use(extension.FixedComplexityLimit(5))
+	srv.Use(extension.FixedComplexityLimit(300))
 	gqlHandler := srv.Handler()
 	pg := playground.Handler("GraphQL playground", "/query")
 

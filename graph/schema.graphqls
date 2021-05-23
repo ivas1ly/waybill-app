@@ -257,7 +257,7 @@ type Query {
   allDrivers(limit: Int = 10, offset: Int = 0): [Driver!]!
   driver(id: ID!): Driver!
   allCars(limit: Int = 10, offset: Int = 0): [Car!]!
-  car(id: ID!): String!
+  car(id: ID!): Car!
   allWaybills(limit: Int = 10, offset: Int = 0): [Waybill!]!
   allWaybillsByUserID(id: ID!, limit: Int = 10, offset: Int = 0): [Waybill!]!
   waybill(id: ID!): Waybill!

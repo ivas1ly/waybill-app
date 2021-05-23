@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	"github.com/ivas1ly/waybill-app/graph/generated"
-	"github.com/ivas1ly/waybill-app/graph/model"
+	"github.com/ivas1ly/waybill-app/model"
 )
 
 func (r *mutationResolver) Login(ctx context.Context, input *model.Login) (string, error) {
@@ -99,7 +99,7 @@ func (r *queryResolver) AllCars(ctx context.Context, limit *int, offset *int) ([
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *queryResolver) Car(ctx context.Context, id string) (string, error) {
+func (r *queryResolver) Car(ctx context.Context, id string) (*model.Car, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
