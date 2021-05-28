@@ -3,24 +3,26 @@
 # Waybill App
 Waybill processing service (module) written with Golang.
 
-##Requirements
+## Requirements
 - Go 1.16
 
 ```shell
 go get -u github.com/ivas1ly/waybill-app
 ```
 
-##Tech Stack
-- Golang
-  - Fiber
-  - GORM
-  - Gqlgen
-  - Zap
-- PostgreSQL
+## Tech Stack
+* Golang
+  * Fiber
+  * GORM
+  * Gqlgen
+  * Zap
+* PostgreSQL
 
-##Features
-- 1
-- 2
+## Features
 
-##License
+* 1
+* 2
+
+## License
+
 This repository is available under the [MIT License](https://github.com/ivas1ly/waybill-app/blob/main/LICENSE).
