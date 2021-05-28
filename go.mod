@@ -13,6 +13,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/klauspost/compress v1.12.1 // indirect
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/savsgio/gotils v0.0.0-20210316171653-c54912823645 // indirect
 	github.com/stretchr/testify v1.5.1 // indirect
 	github.com/valyala/fasthttp v1.23.0 // indirect
@@ -20,7 +21,7 @@ require (
 	github.com/vektah/gqlparser/v2 v2.1.0
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0
-	golang.org/x/sys v0.0.0-20210415045647-66c3f260301c // indirect
-	golang.org/x/tools v0.1.0 // indirect
+	golang.org/x/sys v0.0.0-20210525143221-35b2ab0089ea // indirect
+	golang.org/x/tools v0.1.2 // indirect
 	gorm.io/gorm v1.21.8
 )

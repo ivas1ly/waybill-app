@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gofiber/fiber/v2/middleware/csrf"
 	"github.com/gofiber/fiber/v2/utils"
 	"os"
@@ -77,7 +76,7 @@ func main() {
 		return nil
 	})
 
-	fmt.Print(time.Now())
+	sugar.Info(time.Now())
 
 	app.All("/", func(c *fiber.Ctx) error {
 		pg(c.Context())
