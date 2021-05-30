@@ -9,7 +9,9 @@ replace github.com/99designs/gqlgen v0.13.0 => github.com/arsmn/gqlgen v0.13.2
 require (
 	github.com/99designs/gqlgen v0.13.0
 	github.com/agnivade/levenshtein v1.1.0 // indirect
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/gofiber/fiber/v2 v2.7.1
+	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/jackc/pgproto3/v2 v2.0.7 // indirect
 	github.com/klauspost/compress v1.12.1 // indirect
