@@ -1,4 +1,4 @@
-package model
+package models
 
 // Машина.
 type Car struct {

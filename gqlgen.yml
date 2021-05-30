@@ -15,7 +15,7 @@ exec:
 # Where should any generated models go?
 model:
   filename: models_gen.go
-  package: model
+  package: models
 
 # Where should the resolver implementations go?
 resolver:
@@ -35,7 +35,7 @@ resolver:
 # gqlgen will search for any type names in the schema in these go packages
 # if they match it will use them, otherwise it will generate them.
 autobind:
-  - "github.com/ivas1ly/waybill-app/model"
+  - "github.com/ivas1ly/waybill-app/models"
 
 # This section declares type mapping between the GraphQL and go type systems
 #
@@ -55,30 +55,30 @@ models:
       - github.com/99designs/gqlgen/graphql.Int64
       - github.com/99designs/gqlgen/graphql.Int32
   User:
-    model: github.com/ivas1ly/waybill-app/model.User
+    model: github.com/ivas1ly/waybill-app/models.User
   NewUser:
-    model: github.com/ivas1ly/waybill-app/model.NewUser
+    model: github.com/ivas1ly/waybill-app/models.NewUser
   UpdateUser:
-    model: github.com/ivas1ly/waybill-app/model.UpdateUser
+    model: github.com/ivas1ly/waybill-app/models.UpdateUser
   EditUser:
-    model: github.com/ivas1ly/waybill-app/model.EditUser
+    model: github.com/ivas1ly/waybill-app/models.EditUser
   Car:
-    model: github.com/ivas1ly/waybill-app/model.Car
+    model: github.com/ivas1ly/waybill-app/models.Car
   NewCar:
-    model: github.com/ivas1ly/waybill-app/model.NewCar
+    model: github.com/ivas1ly/waybill-app/models.NewCar
   UpdateCar:
-    model: github.com/ivas1ly/waybill-app/model.UpdateCar
+    model: github.com/ivas1ly/waybill-app/models.UpdateCar
   Driver:
-    model: github.com/ivas1ly/waybill-app/model.Driver
+    model: github.com/ivas1ly/waybill-app/models.Driver
   NewDriver:
-    model: github.com/ivas1ly/waybill-app/model.NewDriver
+    model: github.com/ivas1ly/waybill-app/models.NewDriver
   UpdateDriver:
-    model: github.com/ivas1ly/waybill-app/model.UpdateDriver
+    model: github.com/ivas1ly/waybill-app/models.UpdateDriver
   Waybill:
-    model: github.com/ivas1ly/waybill-app/model.Waybill
+    model: github.com/ivas1ly/waybill-app/models.Waybill
   NewWaybill:
-    model: github.com/ivas1ly/waybill-app/model.NewWaybill
+    model: github.com/ivas1ly/waybill-app/models.NewWaybill
   UpdateWaybill:
-    model: github.com/ivas1ly/waybill-app/model.UpdateWaybill
+    model: github.com/ivas1ly/waybill-app/models.UpdateWaybill
   EditWaybill:
-    model: github.com/ivas1ly/waybill-app/model.EditWaybill
+    model: github.com/ivas1ly/waybill-app/models.EditWaybill

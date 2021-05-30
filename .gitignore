@@ -6,6 +6,7 @@
 # User-specific stuff
 .DS_Store
 .env
+config/config.yml
 .idea/
 .idea/**/workspace.xml
 .idea/**/tasks.xml
