@@ -77,14 +77,14 @@ func (u *User) ComparePassword(password string) error {
 }
 
 func (u *User) GenerateTokenPair() (map[string]string, error) {
-	uuid, err := uuid.NewV4()
+	id, err := uuid.NewV4()
 	if err != nil {
 		return nil, err
 	}
 
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
 		ExpiresAt: time.Now().Add(time.Minute * 30).Unix(),
-		Id:        uuid.String(),
+		Id:        id.String(),
 		IssuedAt:  time.Now().Unix(),
 		Issuer:    "waybill-app-jwt",
 		Subject:   u.ID,
