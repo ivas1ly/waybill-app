@@ -27,6 +27,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 
 	"github.com/ivas1ly/waybill-app/database"
+	"github.com/ivas1ly/waybill-app/domain"
 	"github.com/ivas1ly/waybill-app/graph"
 	"github.com/ivas1ly/waybill-app/graph/generated"
 	"github.com/ivas1ly/waybill-app/models"
@@ -51,6 +52,10 @@ func NewApp() *App {
 
 func (a *App) Run(port string) {
 	a.initDatabase()
+
+	usersRepository := database.UsersRepository{DB: database.DBConn}
+
+	d := domain.NewDomain(usersRepository)
 
 	app := fiber.New(fiber.Config{
 		ServerHeader:          "Fiber",
@@ -90,7 +95,9 @@ func (a *App) Run(port string) {
 		},
 	}))
 
-	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
+	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{
+		Resolvers: &graph.Resolver{Domain: d},
+	}))
 	srv.Use(extension.FixedComplexityLimit(300))
 	gqlHandler := srv.Handler()
 	pg := playground.Handler("GraphQL playground", "/query")
@@ -129,8 +136,6 @@ func (a *App) Run(port string) {
 func (a *App) initDatabase() {
 	var err error
 
-	fmt.Printf("abababa %s", viper.GetString("postgres.host"))
-
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable TimeZone=%s",
 		viper.GetString("postgres.host"),
 		viper.GetString("postgres.user"),
@@ -148,13 +153,12 @@ func (a *App) initDatabase() {
 	}), &gorm.Config{
 		Logger: gormLogger,
 	})
-
 	if err != nil {
 		a.logger.Fatal("Failed to Connect database!")
 	}
 	a.logger.Info("Connection Opened to Database")
 
-	err = a.db.AutoMigrate(&models.Car{}, models.Driver{}, models.Waybill{}, models.User{})
+	err = a.db.AutoMigrate(&models.Car{}, &models.Driver{}, &models.Waybill{}, &models.User{})
 	if err != nil {
 		a.logger.Fatal("Database Not Migrated")
 	}
