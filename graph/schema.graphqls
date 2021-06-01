@@ -22,17 +22,6 @@ type User {
   waybills: [Waybill]
 }
 
-"Результат проверки Access Token и пользователь. для которого он был создан."
-type AuthResponse {
-  response: String!
-  user: User!
-}
-
-"Refresh Token для получения нового Access Token и Refresh Token."
-input RefreshToken {
-  response: String!
-}
-
 "Водитель."
 type Driver {
   "Уникальный идентификатор"
@@ -141,14 +130,6 @@ input EditUser {
   role: Role
 }
 
-"Вход в сервис обработки путевых листов."
-input Login {
-  "Почта пользователя."
-  email: String!
-  "Пароль пользователя."
-  password: String!
-}
-
 "Создать новую машину."
 input NewCar {
   "Название машины (бренд и модель)."
@@ -232,9 +213,6 @@ input EditWaybill {
 }
 
 type Mutation {
-  login(input: Login): String!
-  refreshToken: String!
-  logout: String!
   createUser(input: NewUser!): User!
   updateUser(id: ID!, input: UpdateUser!): User!
   editUser(id: ID!, input: EditUser!): User!

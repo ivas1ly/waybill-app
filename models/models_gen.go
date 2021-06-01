@@ -8,25 +8,6 @@ import (
 	"strconv"
 )
 
-// Результат проверки Access Token и пользователь. для которого он был создан.
-type AuthResponse struct {
-	Response string `json:"response"`
-	User     *User  `json:"user"`
-}
-
-// Вход в сервис обработки путевых листов.
-type Login struct {
-	// Почта пользователя.
-	Email string `json:"email"`
-	// Пароль пользователя.
-	Password string `json:"password"`
-}
-
-// Refresh Token для получения нового Access Token и Refresh Token.
-type RefreshToken struct {
-	Response string `json:"response"`
-}
-
 // Роли сервиса.
 type Role string
 

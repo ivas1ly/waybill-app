@@ -44,11 +44,6 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
-	AuthResponse struct {
-		Response func(childComplexity int) int
-		User     func(childComplexity int) int
-	}
-
 	Car struct {
 		Brand           func(childComplexity int) int
 		Fuel            func(childComplexity int) int
@@ -76,9 +71,6 @@ type ComplexityRoot struct {
 		DeleteWaybill func(childComplexity int, id string) int
 		EditUser      func(childComplexity int, id string, input models.EditUser) int
 		EditWaybill   func(childComplexity int, id string, input models.EditWaybill) int
-		Login         func(childComplexity int, input *models.Login) int
-		Logout        func(childComplexity int) int
-		RefreshToken  func(childComplexity int) int
 		UpdateCar     func(childComplexity int, id string, input models.UpdateCar) int
 		UpdateDriver  func(childComplexity int, id string, input models.UpdateDriver) int
 		UpdateUser    func(childComplexity int, id string, input models.UpdateUser) int
@@ -126,9 +118,6 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	Login(ctx context.Context, input *models.Login) (string, error)
-	RefreshToken(ctx context.Context) (string, error)
-	Logout(ctx context.Context) (string, error)
 	CreateUser(ctx context.Context, input models.NewUser) (*models.User, error)
 	UpdateUser(ctx context.Context, id string, input models.UpdateUser) (*models.User, error)
 	EditUser(ctx context.Context, id string, input models.EditUser) (*models.User, error)
@@ -170,20 +159,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
-
-	case "AuthResponse.response":
-		if e.complexity.AuthResponse.Response == nil {
-			break
-		}
-
-		return e.complexity.AuthResponse.Response(childComplexity), true
-
-	case "AuthResponse.user":
-		if e.complexity.AuthResponse.User == nil {
-			break
-		}
-
-		return e.complexity.AuthResponse.User(childComplexity), true
 
 	case "Car.brand":
 		if e.complexity.Car.Brand == nil {
@@ -374,32 +349,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.EditWaybill(childComplexity, args["id"].(string), args["input"].(models.EditWaybill)), true
-
-	case "Mutation.login":
-		if e.complexity.Mutation.Login == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_login_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.Login(childComplexity, args["input"].(*models.Login)), true
-
-	case "Mutation.logout":
-		if e.complexity.Mutation.Logout == nil {
-			break
-		}
-
-		return e.complexity.Mutation.Logout(childComplexity), true
-
-	case "Mutation.refreshToken":
-		if e.complexity.Mutation.RefreshToken == nil {
-			break
-		}
-
-		return e.complexity.Mutation.RefreshToken(childComplexity), true
 
 	case "Mutation.updateCar":
 		if e.complexity.Mutation.UpdateCar == nil {
@@ -807,17 +756,6 @@ type User {
   waybills: [Waybill]
 }
 
-"Результат проверки Access Token и пользователь. для которого он был создан."
-type AuthResponse {
-  response: String!
-  user: User!
-}
-
-"Refresh Token для получения нового Access Token и Refresh Token."
-input RefreshToken {
-  response: String!
-}
-
 "Водитель."
 type Driver {
   "Уникальный идентификатор"
@@ -926,14 +864,6 @@ input EditUser {
   role: Role
 }
 
-"Вход в сервис обработки путевых листов."
-input Login {
-  "Почта пользователя."
-  email: String!
-  "Пароль пользователя."
-  password: String!
-}
-
 "Создать новую машину."
 input NewCar {
   "Название машины (бренд и модель)."
@@ -1017,9 +947,6 @@ input EditWaybill {
 }
 
 type Mutation {
-  login(input: Login): String!
-  refreshToken: String!
-  logout: String!
   createUser(input: NewUser!): User!
   updateUser(id: ID!, input: UpdateUser!): User!
   editUser(id: ID!, input: EditUser!): User!
@@ -1060,7 +987,7 @@ func (ec *executionContext) field_Mutation_createCar_args(ctx context.Context, r
 	var arg0 models.NewCar
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNNewCar2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐNewCar(ctx, tmp)
+		arg0, err = ec.unmarshalNNewCar2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐNewCar(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1075,7 +1002,7 @@ func (ec *executionContext) field_Mutation_createDriver_args(ctx context.Context
 	var arg0 models.NewDriver
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNNewDriver2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐNewDriver(ctx, tmp)
+		arg0, err = ec.unmarshalNNewDriver2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐNewDriver(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1090,7 +1017,7 @@ func (ec *executionContext) field_Mutation_createUser_args(ctx context.Context, 
 	var arg0 models.NewUser
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNNewUser2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐNewUser(ctx, tmp)
+		arg0, err = ec.unmarshalNNewUser2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐNewUser(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1105,7 +1032,7 @@ func (ec *executionContext) field_Mutation_createWaybill_args(ctx context.Contex
 	var arg0 models.NewWaybill
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNNewWaybill2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐNewWaybill(ctx, tmp)
+		arg0, err = ec.unmarshalNNewWaybill2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐNewWaybill(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1189,7 +1116,7 @@ func (ec *executionContext) field_Mutation_editUser_args(ctx context.Context, ra
 	var arg1 models.EditUser
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg1, err = ec.unmarshalNEditUser2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐEditUser(ctx, tmp)
+		arg1, err = ec.unmarshalNEditUser2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐEditUser(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1213,27 +1140,12 @@ func (ec *executionContext) field_Mutation_editWaybill_args(ctx context.Context,
 	var arg1 models.EditWaybill
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg1, err = ec.unmarshalNEditWaybill2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐEditWaybill(ctx, tmp)
+		arg1, err = ec.unmarshalNEditWaybill2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐEditWaybill(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["input"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_login_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *models.Login
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalOLogin2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐLogin(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
 	return args, nil
 }
 
@@ -1252,7 +1164,7 @@ func (ec *executionContext) field_Mutation_updateCar_args(ctx context.Context, r
 	var arg1 models.UpdateCar
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg1, err = ec.unmarshalNUpdateCar2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐUpdateCar(ctx, tmp)
+		arg1, err = ec.unmarshalNUpdateCar2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐUpdateCar(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1276,7 +1188,7 @@ func (ec *executionContext) field_Mutation_updateDriver_args(ctx context.Context
 	var arg1 models.UpdateDriver
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg1, err = ec.unmarshalNUpdateDriver2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐUpdateDriver(ctx, tmp)
+		arg1, err = ec.unmarshalNUpdateDriver2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐUpdateDriver(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1300,7 +1212,7 @@ func (ec *executionContext) field_Mutation_updateUser_args(ctx context.Context, 
 	var arg1 models.UpdateUser
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg1, err = ec.unmarshalNUpdateUser2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐUpdateUser(ctx, tmp)
+		arg1, err = ec.unmarshalNUpdateUser2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐUpdateUser(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1324,7 +1236,7 @@ func (ec *executionContext) field_Mutation_updateWaybill_args(ctx context.Contex
 	var arg1 models.UpdateWaybill
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg1, err = ec.unmarshalNUpdateWaybill2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐUpdateWaybill(ctx, tmp)
+		arg1, err = ec.unmarshalNUpdateWaybill2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐUpdateWaybill(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1619,76 +1531,6 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
-
-func (ec *executionContext) _AuthResponse_response(ctx context.Context, field graphql.CollectedField, obj *models.AuthResponse) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "AuthResponse",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Response, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _AuthResponse_user(ctx context.Context, field graphql.CollectedField, obj *models.AuthResponse) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "AuthResponse",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.User, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*models.User)
-	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐUser(ctx, field.Selections, res)
-}
 
 func (ec *executionContext) _Car_id(ctx context.Context, field graphql.CollectedField, obj *models.Car) (ret graphql.Marshaler) {
 	defer func() {
@@ -2040,118 +1882,6 @@ func (ec *executionContext) _Driver_isActive(ctx context.Context, field graphql.
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_login(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_login_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().Login(rctx, args["input"].(*models.Login))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_refreshToken(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RefreshToken(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_logout(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().Logout(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Mutation_createUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2191,7 +1921,7 @@ func (ec *executionContext) _Mutation_createUser(ctx context.Context, field grap
 	}
 	res := resTmp.(*models.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_updateUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2233,7 +1963,7 @@ func (ec *executionContext) _Mutation_updateUser(ctx context.Context, field grap
 	}
 	res := resTmp.(*models.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_editUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2275,7 +2005,7 @@ func (ec *executionContext) _Mutation_editUser(ctx context.Context, field graphq
 	}
 	res := resTmp.(*models.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_deleteUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2359,7 +2089,7 @@ func (ec *executionContext) _Mutation_createDriver(ctx context.Context, field gr
 	}
 	res := resTmp.(*models.Driver)
 	fc.Result = res
-	return ec.marshalNDriver2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐDriver(ctx, field.Selections, res)
+	return ec.marshalNDriver2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐDriver(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_updateDriver(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2401,7 +2131,7 @@ func (ec *executionContext) _Mutation_updateDriver(ctx context.Context, field gr
 	}
 	res := resTmp.(*models.Driver)
 	fc.Result = res
-	return ec.marshalNDriver2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐDriver(ctx, field.Selections, res)
+	return ec.marshalNDriver2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐDriver(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_deleteDriver(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2485,7 +2215,7 @@ func (ec *executionContext) _Mutation_createCar(ctx context.Context, field graph
 	}
 	res := resTmp.(*models.Car)
 	fc.Result = res
-	return ec.marshalNCar2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐCar(ctx, field.Selections, res)
+	return ec.marshalNCar2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐCar(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_updateCar(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2527,7 +2257,7 @@ func (ec *executionContext) _Mutation_updateCar(ctx context.Context, field graph
 	}
 	res := resTmp.(*models.Car)
 	fc.Result = res
-	return ec.marshalNCar2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐCar(ctx, field.Selections, res)
+	return ec.marshalNCar2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐCar(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_deleteCar(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2611,7 +2341,7 @@ func (ec *executionContext) _Mutation_createWaybill(ctx context.Context, field g
 	}
 	res := resTmp.(*models.Waybill)
 	fc.Result = res
-	return ec.marshalNWaybill2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐWaybill(ctx, field.Selections, res)
+	return ec.marshalNWaybill2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐWaybill(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_updateWaybill(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2653,7 +2383,7 @@ func (ec *executionContext) _Mutation_updateWaybill(ctx context.Context, field g
 	}
 	res := resTmp.(*models.Waybill)
 	fc.Result = res
-	return ec.marshalNWaybill2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐWaybill(ctx, field.Selections, res)
+	return ec.marshalNWaybill2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐWaybill(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_editWaybill(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2695,7 +2425,7 @@ func (ec *executionContext) _Mutation_editWaybill(ctx context.Context, field gra
 	}
 	res := resTmp.(*models.Waybill)
 	fc.Result = res
-	return ec.marshalNWaybill2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐWaybill(ctx, field.Selections, res)
+	return ec.marshalNWaybill2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐWaybill(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_deleteWaybill(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2779,7 +2509,7 @@ func (ec *executionContext) _Query_allUsers(ctx context.Context, field graphql.C
 	}
 	res := resTmp.([]*models.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐUserᚄ(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐUserᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_user(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2821,7 +2551,7 @@ func (ec *executionContext) _Query_user(ctx context.Context, field graphql.Colle
 	}
 	res := resTmp.(*models.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_allDrivers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2863,7 +2593,7 @@ func (ec *executionContext) _Query_allDrivers(ctx context.Context, field graphql
 	}
 	res := resTmp.([]*models.Driver)
 	fc.Result = res
-	return ec.marshalNDriver2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐDriverᚄ(ctx, field.Selections, res)
+	return ec.marshalNDriver2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐDriverᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_driver(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2905,7 +2635,7 @@ func (ec *executionContext) _Query_driver(ctx context.Context, field graphql.Col
 	}
 	res := resTmp.(*models.Driver)
 	fc.Result = res
-	return ec.marshalNDriver2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐDriver(ctx, field.Selections, res)
+	return ec.marshalNDriver2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐDriver(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_allCars(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2947,7 +2677,7 @@ func (ec *executionContext) _Query_allCars(ctx context.Context, field graphql.Co
 	}
 	res := resTmp.([]*models.Car)
 	fc.Result = res
-	return ec.marshalNCar2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐCarᚄ(ctx, field.Selections, res)
+	return ec.marshalNCar2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐCarᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_car(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2989,7 +2719,7 @@ func (ec *executionContext) _Query_car(ctx context.Context, field graphql.Collec
 	}
 	res := resTmp.(*models.Car)
 	fc.Result = res
-	return ec.marshalNCar2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐCar(ctx, field.Selections, res)
+	return ec.marshalNCar2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐCar(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_allWaybills(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3031,7 +2761,7 @@ func (ec *executionContext) _Query_allWaybills(ctx context.Context, field graphq
 	}
 	res := resTmp.([]*models.Waybill)
 	fc.Result = res
-	return ec.marshalNWaybill2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐWaybillᚄ(ctx, field.Selections, res)
+	return ec.marshalNWaybill2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐWaybillᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_allWaybillsByUserID(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3073,7 +2803,7 @@ func (ec *executionContext) _Query_allWaybillsByUserID(ctx context.Context, fiel
 	}
 	res := resTmp.([]*models.Waybill)
 	fc.Result = res
-	return ec.marshalNWaybill2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐWaybillᚄ(ctx, field.Selections, res)
+	return ec.marshalNWaybill2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐWaybillᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_waybill(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3115,7 +2845,7 @@ func (ec *executionContext) _Query_waybill(ctx context.Context, field graphql.Co
 	}
 	res := resTmp.(*models.Waybill)
 	fc.Result = res
-	return ec.marshalNWaybill2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐWaybill(ctx, field.Selections, res)
+	return ec.marshalNWaybill2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐWaybill(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3326,7 +3056,7 @@ func (ec *executionContext) _User_role(ctx context.Context, field graphql.Collec
 	}
 	res := resTmp.(models.Role)
 	fc.Result = res
-	return ec.marshalNRole2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐRole(ctx, field.Selections, res)
+	return ec.marshalNRole2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐRole(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_waybills(ctx context.Context, field graphql.CollectedField, obj *models.User) (ret graphql.Marshaler) {
@@ -3358,7 +3088,7 @@ func (ec *executionContext) _User_waybills(ctx context.Context, field graphql.Co
 	}
 	res := resTmp.([]*models.Waybill)
 	fc.Result = res
-	return ec.marshalOWaybill2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐWaybill(ctx, field.Selections, res)
+	return ec.marshalOWaybill2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐWaybill(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Waybill_id(ctx context.Context, field graphql.CollectedField, obj *models.Waybill) (ret graphql.Marshaler) {
@@ -3849,7 +3579,7 @@ func (ec *executionContext) _Waybill_driver(ctx context.Context, field graphql.C
 	}
 	res := resTmp.(*models.Driver)
 	fc.Result = res
-	return ec.marshalNDriver2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐDriver(ctx, field.Selections, res)
+	return ec.marshalNDriver2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐDriver(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Waybill_user(ctx context.Context, field graphql.CollectedField, obj *models.Waybill) (ret graphql.Marshaler) {
@@ -3891,7 +3621,7 @@ func (ec *executionContext) _Waybill_user(ctx context.Context, field graphql.Col
 	}
 	res := resTmp.(*models.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Waybill_car(ctx context.Context, field graphql.CollectedField, obj *models.Waybill) (ret graphql.Marshaler) {
@@ -3933,7 +3663,7 @@ func (ec *executionContext) _Waybill_car(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.(*models.Car)
 	fc.Result = res
-	return ec.marshalNCar2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐCar(ctx, field.Selections, res)
+	return ec.marshalNCar2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐCar(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -5049,7 +4779,7 @@ func (ec *executionContext) unmarshalInputEditUser(ctx context.Context, obj inte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("role"))
-			it.Role, err = ec.unmarshalORole2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐRole(ctx, v)
+			it.Role, err = ec.unmarshalORole2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐRole(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5158,34 +4888,6 @@ func (ec *executionContext) unmarshalInputEditWaybill(ctx context.Context, obj i
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isActive"))
 			it.IsActive, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputLogin(ctx context.Context, obj interface{}) (models.Login, error) {
-	var it models.Login
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "email":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
-			it.Email, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "password":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
-			it.Password, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5317,7 +5019,7 @@ func (ec *executionContext) unmarshalInputNewUser(ctx context.Context, obj inter
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("role"))
-			it.Role, err = ec.unmarshalORole2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐRole(ctx, v)
+			it.Role, err = ec.unmarshalORole2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐRole(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5346,26 +5048,6 @@ func (ec *executionContext) unmarshalInputNewWaybill(ctx context.Context, obj in
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dateStart"))
 			it.DateStart, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputRefreshToken(ctx context.Context, obj interface{}) (models.RefreshToken, error) {
-	var it models.RefreshToken
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "response":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("response"))
-			it.Response, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5551,38 +5233,6 @@ func (ec *executionContext) unmarshalInputUpdateWaybill(ctx context.Context, obj
 
 // region    **************************** object.gotpl ****************************
 
-var authResponseImplementors = []string{"AuthResponse"}
-
-func (ec *executionContext) _AuthResponse(ctx context.Context, sel ast.SelectionSet, obj *models.AuthResponse) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, authResponseImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("AuthResponse")
-		case "response":
-			out.Values[i] = ec._AuthResponse_response(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "user":
-			out.Values[i] = ec._AuthResponse_user(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
 var carImplementors = []string{"Car"}
 
 func (ec *executionContext) _Car(ctx context.Context, sel ast.SelectionSet, obj *models.Car) graphql.Marshaler {
@@ -5692,21 +5342,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
-		case "login":
-			out.Values[i] = ec._Mutation_login(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "refreshToken":
-			out.Values[i] = ec._Mutation_refreshToken(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "logout":
-			out.Values[i] = ec._Mutation_logout(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "createUser":
 			out.Values[i] = ec._Mutation_createUser(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -6344,11 +5979,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) marshalNCar2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐCar(ctx context.Context, sel ast.SelectionSet, v models.Car) graphql.Marshaler {
+func (ec *executionContext) marshalNCar2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐCar(ctx context.Context, sel ast.SelectionSet, v models.Car) graphql.Marshaler {
 	return ec._Car(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCar2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐCarᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.Car) graphql.Marshaler {
+func (ec *executionContext) marshalNCar2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐCarᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.Car) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -6372,7 +6007,7 @@ func (ec *executionContext) marshalNCar2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybill�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNCar2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐCar(ctx, sel, v[i])
+			ret[i] = ec.marshalNCar2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐCar(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -6385,7 +6020,7 @@ func (ec *executionContext) marshalNCar2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybill�
 	return ret
 }
 
-func (ec *executionContext) marshalNCar2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐCar(ctx context.Context, sel ast.SelectionSet, v *models.Car) graphql.Marshaler {
+func (ec *executionContext) marshalNCar2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐCar(ctx context.Context, sel ast.SelectionSet, v *models.Car) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -6395,11 +6030,11 @@ func (ec *executionContext) marshalNCar2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑap
 	return ec._Car(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNDriver2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐDriver(ctx context.Context, sel ast.SelectionSet, v models.Driver) graphql.Marshaler {
+func (ec *executionContext) marshalNDriver2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐDriver(ctx context.Context, sel ast.SelectionSet, v models.Driver) graphql.Marshaler {
 	return ec._Driver(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNDriver2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐDriverᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.Driver) graphql.Marshaler {
+func (ec *executionContext) marshalNDriver2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐDriverᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.Driver) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -6423,7 +6058,7 @@ func (ec *executionContext) marshalNDriver2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybil
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNDriver2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐDriver(ctx, sel, v[i])
+			ret[i] = ec.marshalNDriver2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐDriver(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -6436,7 +6071,7 @@ func (ec *executionContext) marshalNDriver2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybil
 	return ret
 }
 
-func (ec *executionContext) marshalNDriver2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐDriver(ctx context.Context, sel ast.SelectionSet, v *models.Driver) graphql.Marshaler {
+func (ec *executionContext) marshalNDriver2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐDriver(ctx context.Context, sel ast.SelectionSet, v *models.Driver) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -6446,12 +6081,12 @@ func (ec *executionContext) marshalNDriver2ᚖgithubᚗcomᚋivas1lyᚋwaybill�
 	return ec._Driver(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNEditUser2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐEditUser(ctx context.Context, v interface{}) (models.EditUser, error) {
+func (ec *executionContext) unmarshalNEditUser2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐEditUser(ctx context.Context, v interface{}) (models.EditUser, error) {
 	res, err := ec.unmarshalInputEditUser(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNEditWaybill2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐEditWaybill(ctx context.Context, v interface{}) (models.EditWaybill, error) {
+func (ec *executionContext) unmarshalNEditWaybill2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐEditWaybill(ctx context.Context, v interface{}) (models.EditWaybill, error) {
 	res, err := ec.unmarshalInputEditWaybill(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -6501,33 +6136,33 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) unmarshalNNewCar2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐNewCar(ctx context.Context, v interface{}) (models.NewCar, error) {
+func (ec *executionContext) unmarshalNNewCar2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐNewCar(ctx context.Context, v interface{}) (models.NewCar, error) {
 	res, err := ec.unmarshalInputNewCar(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNNewDriver2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐNewDriver(ctx context.Context, v interface{}) (models.NewDriver, error) {
+func (ec *executionContext) unmarshalNNewDriver2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐNewDriver(ctx context.Context, v interface{}) (models.NewDriver, error) {
 	res, err := ec.unmarshalInputNewDriver(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNNewUser2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐNewUser(ctx context.Context, v interface{}) (models.NewUser, error) {
+func (ec *executionContext) unmarshalNNewUser2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐNewUser(ctx context.Context, v interface{}) (models.NewUser, error) {
 	res, err := ec.unmarshalInputNewUser(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNNewWaybill2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐNewWaybill(ctx context.Context, v interface{}) (models.NewWaybill, error) {
+func (ec *executionContext) unmarshalNNewWaybill2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐNewWaybill(ctx context.Context, v interface{}) (models.NewWaybill, error) {
 	res, err := ec.unmarshalInputNewWaybill(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNRole2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐRole(ctx context.Context, v interface{}) (models.Role, error) {
+func (ec *executionContext) unmarshalNRole2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐRole(ctx context.Context, v interface{}) (models.Role, error) {
 	var res models.Role
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNRole2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐRole(ctx context.Context, sel ast.SelectionSet, v models.Role) graphql.Marshaler {
+func (ec *executionContext) marshalNRole2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐRole(ctx context.Context, sel ast.SelectionSet, v models.Role) graphql.Marshaler {
 	return v
 }
 
@@ -6561,31 +6196,31 @@ func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel as
 	return res
 }
 
-func (ec *executionContext) unmarshalNUpdateCar2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐUpdateCar(ctx context.Context, v interface{}) (models.UpdateCar, error) {
+func (ec *executionContext) unmarshalNUpdateCar2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐUpdateCar(ctx context.Context, v interface{}) (models.UpdateCar, error) {
 	res, err := ec.unmarshalInputUpdateCar(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNUpdateDriver2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐUpdateDriver(ctx context.Context, v interface{}) (models.UpdateDriver, error) {
+func (ec *executionContext) unmarshalNUpdateDriver2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐUpdateDriver(ctx context.Context, v interface{}) (models.UpdateDriver, error) {
 	res, err := ec.unmarshalInputUpdateDriver(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNUpdateUser2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐUpdateUser(ctx context.Context, v interface{}) (models.UpdateUser, error) {
+func (ec *executionContext) unmarshalNUpdateUser2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐUpdateUser(ctx context.Context, v interface{}) (models.UpdateUser, error) {
 	res, err := ec.unmarshalInputUpdateUser(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNUpdateWaybill2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐUpdateWaybill(ctx context.Context, v interface{}) (models.UpdateWaybill, error) {
+func (ec *executionContext) unmarshalNUpdateWaybill2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐUpdateWaybill(ctx context.Context, v interface{}) (models.UpdateWaybill, error) {
 	res, err := ec.unmarshalInputUpdateWaybill(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNUser2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v models.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v models.User) graphql.Marshaler {
 	return ec._User(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.User) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -6609,7 +6244,7 @@ func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybill�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNUser2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐUser(ctx, sel, v[i])
+			ret[i] = ec.marshalNUser2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐUser(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -6622,7 +6257,7 @@ func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybill�
 	return ret
 }
 
-func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *models.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v *models.User) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -6632,11 +6267,11 @@ func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑa
 	return ec._User(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNWaybill2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐWaybill(ctx context.Context, sel ast.SelectionSet, v models.Waybill) graphql.Marshaler {
+func (ec *executionContext) marshalNWaybill2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐWaybill(ctx context.Context, sel ast.SelectionSet, v models.Waybill) graphql.Marshaler {
 	return ec._Waybill(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNWaybill2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐWaybillᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.Waybill) graphql.Marshaler {
+func (ec *executionContext) marshalNWaybill2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐWaybillᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.Waybill) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -6660,7 +6295,7 @@ func (ec *executionContext) marshalNWaybill2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybi
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNWaybill2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐWaybill(ctx, sel, v[i])
+			ret[i] = ec.marshalNWaybill2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐWaybill(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -6673,7 +6308,7 @@ func (ec *executionContext) marshalNWaybill2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybi
 	return ret
 }
 
-func (ec *executionContext) marshalNWaybill2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐWaybill(ctx context.Context, sel ast.SelectionSet, v *models.Waybill) graphql.Marshaler {
+func (ec *executionContext) marshalNWaybill2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐWaybill(ctx context.Context, sel ast.SelectionSet, v *models.Waybill) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -6981,15 +6616,7 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return graphql.MarshalInt(*v)
 }
 
-func (ec *executionContext) unmarshalOLogin2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐLogin(ctx context.Context, v interface{}) (*models.Login, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputLogin(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalORole2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐRole(ctx context.Context, v interface{}) (*models.Role, error) {
+func (ec *executionContext) unmarshalORole2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐRole(ctx context.Context, v interface{}) (*models.Role, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -6998,7 +6625,7 @@ func (ec *executionContext) unmarshalORole2ᚖgithubᚗcomᚋivas1lyᚋwaybill�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalORole2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐRole(ctx context.Context, sel ast.SelectionSet, v *models.Role) graphql.Marshaler {
+func (ec *executionContext) marshalORole2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐRole(ctx context.Context, sel ast.SelectionSet, v *models.Role) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -7044,7 +6671,7 @@ func (ec *executionContext) marshalOTime2ᚖtimeᚐTime(ctx context.Context, sel
 	return graphql.MarshalTime(*v)
 }
 
-func (ec *executionContext) marshalOWaybill2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐWaybill(ctx context.Context, sel ast.SelectionSet, v []*models.Waybill) graphql.Marshaler {
+func (ec *executionContext) marshalOWaybill2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐWaybill(ctx context.Context, sel ast.SelectionSet, v []*models.Waybill) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -7071,7 +6698,7 @@ func (ec *executionContext) marshalOWaybill2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybi
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOWaybill2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐWaybill(ctx, sel, v[i])
+			ret[i] = ec.marshalOWaybill2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐWaybill(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -7084,7 +6711,7 @@ func (ec *executionContext) marshalOWaybill2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybi
 	return ret
 }
 
-func (ec *executionContext) marshalOWaybill2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelᚐWaybill(ctx context.Context, sel ast.SelectionSet, v *models.Waybill) graphql.Marshaler {
+func (ec *executionContext) marshalOWaybill2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐWaybill(ctx context.Context, sel ast.SelectionSet, v *models.Waybill) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

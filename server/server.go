@@ -2,25 +2,24 @@ package server
 
 import (
 	"fmt"
+	"log"
+	"net/http"
 	"os"
-	"os/signal"
-	"syscall"
 	"time"
+
+	"github.com/rs/cors"
+
+	"github.com/go-chi/chi/v5/middleware"
+
+	"github.com/go-chi/chi/v5"
 
 	"github.com/spf13/viper"
 
 	"go.uber.org/zap"
-	"moul.io/zapgorm2"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/compress"
-	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/csrf"
-	"github.com/gofiber/fiber/v2/middleware/limiter"
-	"github.com/gofiber/fiber/v2/utils"
+	gl "gorm.io/gorm/logger"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
@@ -39,101 +38,83 @@ type App struct {
 }
 
 func NewApp() *App {
-	logger, _ := zap.NewProduction()
-	defer logger.Sync()
-
-	db := database.DBConn
+	zapLogger, _ := zap.NewProduction()
+	defer func(zapLogger *zap.Logger) {
+		_ = zapLogger.Sync()
+	}(zapLogger)
+	db := ConnectDatabase(zapLogger)
 
 	return &App{
-		logger: logger,
+		logger: zapLogger,
 		db:     db,
 	}
 }
 
 func (a *App) Run(port string) {
-	a.initDatabase()
 
-	usersRepository := database.UsersRepository{DB: database.DBConn}
+	usersRepository := database.UsersRepository{DB: a.db}
+	waybillsRepository := database.WaybillsRepository{DB: a.db}
+	driversRepository := database.DriversRepository{DB: a.db}
+	carsRepository := database.CarsRepository{DB: a.db}
 
-	d := domain.NewDomain(usersRepository)
+	d := domain.NewDomain(usersRepository, waybillsRepository, driversRepository, carsRepository)
 
-	app := fiber.New(fiber.Config{
-		ServerHeader:          "Fiber",
-		BodyLimit:             4 * 1024 * 1024,
-		Concurrency:           256 * 1024,
-		ReadTimeout:           2 * time.Minute,
-		WriteTimeout:          2 * time.Minute,
-		DisableStartupMessage: true,
-	})
-	app.Use(cors.New(cors.Config{
+	router := chi.NewRouter()
+	router.Use(cors.New(cors.Options{
+		//AllowedOrigins:   []string{"http://localhost:8000"},
 		AllowCredentials: true,
-		AllowMethods:     "GET,POST",
-	}))
-	app.Use(compress.New(compress.Config{
-		Level: compress.LevelBestSpeed,
-	}))
-	app.Use(csrf.New(csrf.Config{
-		KeyLookup:      "cookie:csrf_waybill",
-		CookieName:     "csrf_waybill",
-		CookieHTTPOnly: false,
-		CookieSameSite: "Strict",
-		Expiration:     30 * time.Minute,
-		KeyGenerator:   utils.UUIDv4,
-		ContextKey:     "csrf_waybill",
-	}))
-	app.Use(limiter.New(limiter.Config{
-		Next: func(c *fiber.Ctx) bool {
-			return c.IP() == "127.0.0.1"
-		},
-		KeyGenerator: func(c *fiber.Ctx) string {
-			return c.Get("x-forwarded-for")
-		},
-		Max:        20,
-		Expiration: 1 * time.Minute,
-		LimitReached: func(c *fiber.Ctx) error {
-			return c.SendStatus(fiber.StatusTooManyRequests)
-		},
-	}))
+		//AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		Debug: false,
+		//MaxAge:           300,
+	}).Handler)
+	router.Use(middleware.RequestID)
+	router.Use(middleware.Logger)
+	router.Use(middleware.Recoverer)
+	//router.Use(appCustomMiddleware.Auth(usersRepository))
+	/*router.Use(csrf.Protect(
+		[]byte("a-32-byte-long-key-goes-here"),
+		csrf.TrustedOrigins([]string{"*"}),
+		csrf.Secure(false),
+		csrf.HttpOnly(false),
+	))*/
 
-	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{
-		Resolvers: &graph.Resolver{Domain: d},
-	}))
-	srv.Use(extension.FixedComplexityLimit(300))
-	gqlHandler := srv.Handler()
+	router.Route("/query", func(r chi.Router) {
+		schema := generated.NewExecutableSchema(generated.Config{
+			Resolvers: &graph.Resolver{Domain: d}})
+		srv := handler.NewDefaultServer(schema)
+		srv.Use(extension.FixedComplexityLimit(300))
+
+		r.Handle("/", srv)
+	})
+
 	pg := playground.Handler("GraphQL playground", "/query")
-
-	app.All("/query", func(c *fiber.Ctx) error {
-		gqlHandler(c.Context())
-		return nil
-	})
-
-	app.All("/", func(c *fiber.Ctx) error {
-		pg(c.Context())
-		return nil
-	})
+	router.Get("/", pg)
 
 	a.logger.Info(fmt.Sprintf("Connect to http://localhost:%s/ for GraphQL playground", port))
+	if err := http.ListenAndServe(":"+port, router); err != nil {
+		a.logger.Fatal(fmt.Sprintf("%+v", err))
+	}
+	/*
+		// Listen from a different goroutine
+		go func() {
+			if err := http.ListenAndServe(":"+port, router); err != nil {
+				a.logger.Fatal(fmt.Sprintf("%+v", err))
+			}
+		}()
 
-	// Listen from a different goroutine
-	go func() {
-		if err := app.Listen(":" + port); err != nil {
-			a.logger.Fatal(fmt.Sprintf("%+v", err))
-		}
-	}()
+		c := make(chan os.Signal, 1)                    // Create channel to signify a signal being sent
+		signal.Notify(c, os.Interrupt, syscall.SIGTERM) // When an interrupt or termination signal is sent, notify the channel
 
-	c := make(chan os.Signal, 1)                    // Create channel to signify a signal being sent
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM) // When an interrupt or termination signal is sent, notify the channel
+		_ = <-c // This blocks the main thread until an interrupt is received
+		a.logger.Info("Gracefully shutting down...")
+		//_ = http.Server.Shutdown(router, context.Background())
 
-	_ = <-c // This blocks the main thread until an interrupt is received
-	a.logger.Info("Gracefully shutting down...")
-	_ = app.Shutdown()
-
-	a.logger.Info("Running cleanup tasks...")
-	// Your cleanup tasks go here
-	a.logger.Info("Fiber was successful shutdown.")
+		a.logger.Info("Running cleanup tasks...")
+		// Your cleanup tasks go here
+		a.logger.Info("Server was successful shutdown."*/
 }
 
-func (a *App) initDatabase() {
+func ConnectDatabase(logger *zap.Logger) *gorm.DB {
 	var err error
 
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable TimeZone=%s",
@@ -144,23 +125,30 @@ func (a *App) initDatabase() {
 		viper.GetInt("postgres.port"),
 		viper.GetString("postgres.timezone"))
 
-	gormLogger := zapgorm2.New(a.logger)
-	gormLogger.SetAsDefault()
+	newLogger := gl.New(log.New(os.Stdout, "\r\n", log.LstdFlags), gl.Config{
+		SlowThreshold:             time.Second,
+		Colorful:                  true,
+		IgnoreRecordNotFoundError: false,
+		LogLevel:                  gl.Info,
+	})
 
-	a.db, err = gorm.Open(postgres.New(postgres.Config{
+	db := database.DB
+	db, err = gorm.Open(postgres.New(postgres.Config{
 		DSN:                  dsn,
 		PreferSimpleProtocol: false,
 	}), &gorm.Config{
-		Logger: gormLogger,
+		Logger: newLogger,
 	})
 	if err != nil {
-		a.logger.Fatal("Failed to Connect database!")
+		logger.Fatal("Failed to Connect database!")
 	}
-	a.logger.Info("Connection Opened to Database")
+	logger.Info("Connection Opened to Database")
 
-	err = a.db.AutoMigrate(&models.Car{}, &models.Driver{}, &models.Waybill{}, &models.User{})
+	err = db.AutoMigrate(&models.Car{}, &models.Driver{}, &models.Waybill{}, &models.User{})
 	if err != nil {
-		a.logger.Fatal("Database Not Migrated")
+		logger.Fatal("Database Not Migrated")
 	}
-	a.logger.Info("Database Migrated")
+	logger.Info("Database Migrated")
+
+	return db
 }

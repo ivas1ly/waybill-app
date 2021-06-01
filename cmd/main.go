@@ -8,7 +8,7 @@ import (
 	"github.com/ivas1ly/waybill-app/server"
 )
 
-const defaultPort = "8080"
+const defaultPort = "8000"
 
 func main() {
 	port := os.Getenv("PORT")
