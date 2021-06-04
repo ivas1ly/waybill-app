@@ -36,7 +36,7 @@ func (w *WaybillsRepository) CreateWaybill(waybill *models.Waybill) (*models.Way
 
 func (w *WaybillsRepository) GetWaybillByID(id string) (*models.Waybill, error) {
 	var waybill models.Waybill
-	err := w.DB.First(&waybill).Where("%v = ?", id).Error
+	err := w.DB.First(&waybill).Where("id = ?", id).Error
 	return &waybill, err
 }
 

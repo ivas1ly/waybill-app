@@ -4,21 +4,21 @@ import "time"
 
 type Waybill struct {
 	// Идентификатор путевого листа.
-	ID string `json:"id"`
+	ID string `json:"id" gorm:"type:uuid;primaryKey;size:255;uniqueIndex;not null;default:gen_random_uuid()"`
 	// Идентификатор пользователя.
-	UserID string `json:"userID"`
+	UserID string `json:"userID" gorm:"type:uuid;primaryKey;size:255;not null;"`
 	// Идентификатор водителя.
-	DriverID string `json:"driverID"`
+	DriverID string `json:"driverID" gorm:"type:uuid;primaryKey;size:255;not null;"`
 	// Идентификатор машины.
-	CarID string `json:"carID"`
+	CarID string `json:"carID" gorm:"type:uuid;primaryKey;size:255;not null;"`
 	// Дата и время создания путевого листа.
-	DateStart time.Time `json:"dateStart"`
+	DateStart time.Time `json:"dateStart" gorm:"not null;"`
 	// Дата и время закрытия путевого листа.
 	DateEnd time.Time `json:"dateEnd"`
 	// Показания спидометра при выезде.
-	MileageStart int `json:"mileageStart"`
+	MileageStart int `json:"mileageStart" gorm:"type:integer;not null;"`
 	// Показания спидометра при заезде.
-	MileageEnd *int `json:"mileageEnd"`
+	MileageEnd *int `json:"mileageEnd" gorm:"type:integer;"`
 	// Заправлено топлива.
 	FuelFill float64 `json:"fuelFill"`
 	// Расход топлива по факту
@@ -28,13 +28,17 @@ type Waybill struct {
 	// Остаток топлива при заезде.
 	FuelRemainingEnd *float64 `json:"fuelRemainingEnd"`
 	// Возможность редактировать путевой лист.
-	IsActive bool `json:"isActive"`
+	IsActive bool `json:"isActive" gorm:"not null;default:false"`
 	// Водитель, к которому относится путевой лист.
 	Driver *Driver `json:"driver"`
 	// Пользователь, создавший путевой лист.
 	User *User `json:"user"`
 	// Машина.
 	Car *Car `json:"car"`
+	// Дата создания путевого листа.
+	CreatedAt time.Time `json:"createdAt"`
+	// Дата последнего обновления данных в путевом листе.
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 // Создание нового путевого листа.

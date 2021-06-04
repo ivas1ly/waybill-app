@@ -14,29 +14,29 @@ import (
 // Пользователь.
 type User struct {
 	// Идентификатор пользователя.
-	ID string `json:"id"`
+	ID string `json:"id" gorm:"type:uuid;size:255;uniqueIndex;not null;default:gen_random_uuid()"`
 	// Почта пользователя.
-	Email string `json:"email"`
+	Email string `json:"email" gorm:"size:255;uniqueIndex;not null"`
 	// Пароль
-	Password string `json:"-"`
+	Password string `json:"-" gorm:"size:255;not null"`
 	// JWT Refresh Token
-	RefreshToken string `json:"-"`
+	RefreshToken string `json:"-" gorm:"size:255;not null"`
 	// 2fa secret
-	Secret string `json:"-"`
-	// Номер телефона.
-	PhoneNumber string `json:"phoneNumber"`
+	Secret string `json:"-" gorm:"size:255;not null"`
 	// Роль в сервисе.
-	Role Role `json:"role"`
+	Role Role `json:"role" gorm:"size:20;not null"`
 	// Путевые листы, созданные пользователем.
-	Waybills []*Waybill `json:"waybills"`
+	Waybills []*Waybill `json:"waybills" gorm:"foreignKey:UserID;"`
+	// Дата создания пользователя.
+	CreatedAt time.Time `json:"createdAt"`
+	// Дата последнего обновления данных пользователя.
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 // Создание нового пользователя. Только администратор
 type NewUser struct {
 	// Почта пользователя. Почта не должна повторяться.
 	Email string `json:"email"`
-	// Номер телефона.
-	PhoneNumber string `json:"phoneNumber"`
 	// Роль пользователя в сервисе.
 	Role *Role `json:"role"`
 }
@@ -45,8 +45,6 @@ type NewUser struct {
 type UpdateUser struct {
 	// Почта пользователя.
 	Email *string `json:"email"`
-	// Номер телефона.
-	PhoneNumber *string `json:"phoneNumber"`
 	// Пароль пользователя. Должен быть не менее 10 символов.
 	Password *string `json:"password"`
 }
@@ -54,8 +52,6 @@ type UpdateUser struct {
 type EditUser struct {
 	// Почта пользователя.
 	Email *string `json:"email"`
-	// Номер телефона.
-	PhoneNumber *string `json:"phoneNumber"`
 	// Роль пользователя.
 	Role *Role `json:"role"`
 }
@@ -72,8 +68,24 @@ func (u *User) HashPassword(password string) error {
 	return nil
 }
 
+func (u *User) HashTOTP(totp string) error {
+	byteTotp := []byte(totp)
+	hashedTotp, err := bcrypt.GenerateFromPassword(byteTotp, 14)
+	if err != nil {
+		return err
+	}
+
+	u.Secret = string(hashedTotp)
+
+	return nil
+}
+
 func (u *User) ComparePassword(password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
+}
+
+func (u *User) CompareTOTP(totp string) error {
+	return bcrypt.CompareHashAndPassword([]byte(u.Secret), []byte(totp))
 }
 
 func (u *User) GenerateTokenPair() (map[string]string, error) {

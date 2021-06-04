@@ -13,8 +13,10 @@ type UsersRepository struct {
 
 func (u *UsersRepository) GetUserByField(field, value string) (*models.User, error) {
 	var user models.User
-	err := u.DB.First(&user, fmt.Sprintf("%v = ?", field), value).Error
-	return &user, err
+	if err := u.DB.Where(fmt.Sprintf("%v = ?", field), value).Preload("Waybills").Preload("Waybills.Driver").Preload("Waybills.Car").Preload("Waybills.User").First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
 }
 
 func (u *UsersRepository) GetUserByID(id string) (*models.User, error) {
@@ -26,8 +28,10 @@ func (u *UsersRepository) GetUserByEmail(email string) (*models.User, error) {
 }
 
 func (u *UsersRepository) CreateUser(user *models.User) (*models.User, error) {
-	err := u.DB.Create(&user).Error
-	return user, err
+	if err := u.DB.Create(&user).Error; err != nil {
+		return nil, err
+	}
+	return user, nil
 }
 
 func (u *UsersRepository) DeleteUser(user *models.User) (*models.User, error) {

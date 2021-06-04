@@ -1,21 +1,27 @@
 package models
 
+import "time"
+
 // Машина.
 type Car struct {
 	// Уникальный идентификатор.
-	ID string `json:"id"`
+	ID string `json:"id" gorm:"type:uuid;size:255;uniqueIndex;not null;default:gen_random_uuid()"`
 	// Автомобиль.
-	Brand string `json:"brand"`
+	Brand string `json:"brand" gorm:"size:255;not null;"`
 	// Гос. номер автомобиля.
-	Number string `json:"number"`
+	Number string `json:"number" gorm:"size:15;"`
 	// Вид топлива.
-	Fuel string `json:"fuel"`
+	Fuel string `json:"fuel" gorm:"size:15;"`
 	// Пробег.
-	Mileage int `json:"mileage"`
+	Mileage int `json:"mileage" gorm:"type:integer;not null;"`
 	// Норма расхода.
-	FuelConsumption float64 `json:"fuelConsumption"`
+	FuelConsumption float64 `json:"fuelConsumption;not null;"`
 	// Остаток топлива.
-	FuelRemaining float64 `json:"fuelRemaining"`
+	FuelRemaining float64 `json:"fuelRemaining;not null;"`
+	// Дата создания машины.
+	CreatedAt time.Time `json:"createdAt"`
+	// Дата последнего обновления данных машины.
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 // Создать новую машину.
