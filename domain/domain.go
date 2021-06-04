@@ -1,29 +1,25 @@
 package domain
 
 import (
-	"errors"
-
 	"github.com/ivas1ly/waybill-app/database"
 	"github.com/ivas1ly/waybill-app/models"
-)
-
-var (
-	ErrBadCredentials  = errors.New("email/password combination don't work")
-	ErrUnauthenticated = errors.New("unauthenticated")
-	ErrForbidden       = errors.New("unauthorized")
+	"go.uber.org/zap"
 )
 
 type Domain struct {
+	Logger             *zap.Logger
 	UsersRepository    database.UsersRepository
 	WaybillsRepository database.WaybillsRepository
 	DriversRepository  database.DriversRepository
 	CarsRepository     database.CarsRepository
 }
 
-func NewDomain(usersRepository database.UsersRepository,
+func NewDomain(logger *zap.Logger, usersRepository database.UsersRepository,
 	waybillsRepository database.WaybillsRepository,
-	driversRepository database.DriversRepository, carsRepository database.CarsRepository) *Domain {
+	driversRepository database.DriversRepository,
+	carsRepository database.CarsRepository) *Domain {
 	return &Domain{
+		Logger:             logger,
 		UsersRepository:    usersRepository,
 		WaybillsRepository: waybillsRepository,
 		DriversRepository:  driversRepository,

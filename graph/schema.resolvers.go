@@ -11,8 +11,20 @@ import (
 	"github.com/ivas1ly/waybill-app/models"
 )
 
-func (r *mutationResolver) CreateUser(ctx context.Context, input models.NewUser) (*models.User, error) {
+func (r *mutationResolver) Login(ctx context.Context, input *models.Login) (string, error) {
 	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *mutationResolver) RefreshToken(ctx context.Context) (string, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *mutationResolver) Logout(ctx context.Context) (string, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *mutationResolver) CreateUser(ctx context.Context, input models.NewUser) (*models.AuthResponse, error) {
+	return r.Domain.CreateUser(ctx, input)
 }
 
 func (r *mutationResolver) UpdateUser(ctx context.Context, id string, input models.UpdateUser) (*models.User, error) {
@@ -101,7 +113,8 @@ func (r *queryResolver) AllWaybillsByUserID(ctx context.Context, id string, limi
 }
 
 func (r *queryResolver) Waybill(ctx context.Context, id string) (*models.Waybill, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Domain.WaybillsRepository.GetWaybillByID(id)
+	//panic(fmt.Errorf("not implemented"))
 }
 
 // Mutation returns generated.MutationResolver implementation.

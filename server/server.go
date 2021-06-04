@@ -57,7 +57,7 @@ func (a *App) Run(port string) {
 	driversRepository := database.DriversRepository{DB: a.db}
 	carsRepository := database.CarsRepository{DB: a.db}
 
-	d := domain.NewDomain(usersRepository, waybillsRepository, driversRepository, carsRepository)
+	d := domain.NewDomain(a.logger, usersRepository, waybillsRepository, driversRepository, carsRepository)
 
 	router := chi.NewRouter()
 	router.Use(cors.New(cors.Options{
@@ -139,12 +139,14 @@ func ConnectDatabase(logger *zap.Logger) *gorm.DB {
 	}), &gorm.Config{
 		Logger: newLogger,
 	})
+
 	if err != nil {
 		logger.Fatal("Failed to Connect database!")
 	}
 	logger.Info("Connection Opened to Database")
 
 	err = db.AutoMigrate(&models.Car{}, &models.Driver{}, &models.Waybill{}, &models.User{})
+
 	if err != nil {
 		logger.Fatal("Database Not Migrated")
 	}
