@@ -8,28 +8,58 @@ enum Role {
   DRIVER
 }
 
+"Результат проверки Access Token и пользователь. для которого он был создан."
+type AuthResponse {
+  response: String!
+  user: User!
+}
+"Refresh Token для получения нового Access Token и Refresh Token."
+input RefreshToken {
+  response: String!
+}
+
+"Вход в сервис обработки путевых листов."
+input Login {
+  "Почта пользователя."
+  email: String!
+  "Пароль пользователя."
+  password: String!
+  "TOTP пароль"
+  totp: String!
+}
+
 "Пользователь."
 type User {
   "Идентификатор пользователя."
   id: ID!
   "Почта пользователя."
   email: String!
-  "Номер телефона."
-  phoneNumber: String!
   "Роль в сервисе."
   role: Role!
   "Путевые листы, созданные пользователем."
   waybills: [Waybill]
+  "Дата создания пользователя."
+  createdAt: Time!
+  "Дата последнего обновления данных пользователя."
+  updatedAt: Time!
 }
 
 "Водитель."
 type Driver {
   "Уникальный идентификатор"
   id: ID!
-  "Фамилия Имя Отчество"
-  fio: String!
+  "Имя водителя."
+  firstName: String!
+  "Фамилия водителя."
+  secondName: String!
+  "Отчество водителя."
+  patronymic: String
   "Есть ли сейчас открытый путевой лист или нет."
   isActive: Boolean!
+  "Дата создания водителя."
+  createdAt: Time!
+  "Дата последнего обновления данных водителя."
+  updatedAt: Time!
 }
 
 "Машина."
@@ -48,6 +78,10 @@ type Car {
   fuelConsumption: Float!
   "Остаток топлива."
   fuelRemaining: Float!
+  "Дата создания машины."
+  createdAt: Time!
+  "Дата последнего обновления данных машины."
+  updatedAt: Time!
 }
 
 type Waybill {
@@ -62,7 +96,7 @@ type Waybill {
   "Дата и время создания путевого листа."
   dateStart: Time!
   "Дата и время закрытия путевого листа."
-  dateEnd: Time!
+  dateEnd: Time
   "Показания спидометра при выезде."
   mileageStart: Int!
   "Показания спидометра при заезде."
@@ -83,6 +117,10 @@ type Waybill {
   user(id: ID! = userID): User!
   "Машина."
   car(id: ID! = carID): Car!
+  "Дата создания путевого листа."
+  createdAt: Time!
+  "Дата последнего обновления данных в путевом листе."
+  updatedAt: Time!
 }
 
 "Создание нового путевого листа."
@@ -105,8 +143,6 @@ input UpdateWaybill {
 input NewUser {
   "Почта пользователя. Почта не должна повторяться."
   email: String!
-  "Номер телефона."
-  phoneNumber: String!
   "Роль пользователя в сервисе."
   role: Role
 }
@@ -115,8 +151,6 @@ input NewUser {
 input UpdateUser {
   "Почта пользователя."
   email: String
-  "Номер телефона."
-  phoneNumber: String
   "Пароль пользователя. Должен быть не менее 10 символов."
   password: String
 }
@@ -124,8 +158,6 @@ input UpdateUser {
 input EditUser {
   "Почта пользователя."
   email: String
-  "Номер телефона."
-  phoneNumber: String
   "Роль пользователя."
   role: Role
 }
@@ -213,7 +245,10 @@ input EditWaybill {
 }
 
 type Mutation {
-  createUser(input: NewUser!): User!
+  login(input: Login): String!
+  refreshToken: String!
+  logout: String!
+  createUser(input: NewUser!): AuthResponse!
   updateUser(id: ID!, input: UpdateUser!): User!
   editUser(id: ID!, input: EditUser!): User!
   deleteUser(id: ID!): String!
