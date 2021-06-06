@@ -3,7 +3,6 @@ package domain
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"image/png"
 
 	"github.com/ivas1ly/waybill-app/internal"
@@ -116,10 +115,8 @@ func (d *Domain) CreateUser(ctx context.Context, input models.NewUser) (*models.
 }
 
 func (d *Domain) GetCurrentUserFromCTX(ctx context.Context) (*models.User, error) {
-	fmt.Print(fmt.Sprintf("FROM CONTEXT: %v", ctx.Value("current\n\n")))
+
 	if ctx.Value("CurrentUser") == nil {
-		//fmt.Print(ctx.Value("user\n\n"))
-		//d.Logger.Info()
 		d.Logger.Error("There is no user in the context. Access is denied.")
 		return nil, gqlerror.Errorf("Unauthenticated request. Access Denied.")
 	}

@@ -84,8 +84,6 @@ func (r *queryResolver) AllUsers(ctx context.Context, limit *int, offset *int) (
 }
 
 func (r *queryResolver) User(ctx context.Context, id string) (*models.User, error) {
-	//fmt.Print(id)
-
 	return r.Domain.GetUser(ctx, id)
 }
 

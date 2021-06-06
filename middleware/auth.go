@@ -17,7 +17,6 @@ func Auth(d *domain.Domain) fiber.Handler {
 			d.Logger.Info("Valid JWT")
 			u := c.Locals("user").(*jwt.Token)
 			claims := u.Claims.(jwt.MapClaims)
-			d.Logger.Info(claims["sub"].(string))
 
 			user, err := d.UsersRepository.GetUserByID(claims["sub"].(string))
 			if err != nil {
