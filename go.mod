@@ -46,6 +46,8 @@ require (
 	go.uber.org/zap v1.17.0
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
 	golang.org/x/sys v0.0.0-20210603125802-9665404d3644 // indirect
+	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
+	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
 	gorm.io/driver/postgres v1.1.0
 	gorm.io/gorm v1.21.10
 	gorm.io/plugin/prometheus v0.0.0-20210507023802-dc84a49b85d1 // indirect

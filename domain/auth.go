@@ -1,8 +1,11 @@
 package domain
 
 import (
+	"bytes"
 	"context"
-	"fmt"
+	"image/png"
+
+	"github.com/ivas1ly/waybill-app/internal"
 
 	"go.uber.org/zap"
 
@@ -44,27 +47,28 @@ func (d *Domain) CreateUser(ctx context.Context, input models.NewUser) (*models.
 		d.Logger.Error("Error while creating TOTP.")
 		return nil, gqlerror.Errorf("Internal server error.")
 	}
-	fmt.Printf("----|TOTP KEY: %v|----", key)
 
-	/*var buf bytes.Buffer
+	var buf bytes.Buffer
 	img, err := key.Image(200, 200)
-	png.Encode(&buf, img)*/
-
-	/*err := internal.SendEmail()
 	if err != nil {
-		d.Logger.Error("Error while sending email.")
 		return nil, gqlerror.Errorf("Internal server error.")
-	}*/
+	}
+	png.Encode(&buf, img)
+
+	err = internal.SendEmail(input.Email, genPassword, key.Secret(), buf.Bytes())
+	if err != nil {
+		d.Logger.Error("Error while sending email.", zap.Error(err))
+		return nil, gqlerror.Errorf("Internal server error.")
+	}
 
 	user := &models.User{
-		Email: input.Email,
-		Role:  role,
+		Email:  input.Email,
+		Role:   role,
+		Secret: key.Secret(),
 	}
-	err = user.HashTOTP(key.String())
-	if err != nil {
-		d.Logger.Error("TOTP hashing error", zap.Error(err))
-		return nil, gqlerror.Errorf("Internal server error.")
-	}
+
+	d.Logger.Info(key.Secret())
+
 	err = user.HashPassword(genPassword)
 	if err != nil {
 		d.Logger.Error("Password hashing error", zap.Error(err))
