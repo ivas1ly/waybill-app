@@ -8,10 +8,10 @@ import (
 	"strconv"
 )
 
-// Результат проверки Access Token и пользователь. для которого он был создан.
+// Результат проверки Access Token и пользователь, для которого он был создан.
 type AuthResponse struct {
-	Response string `json:"response"`
-	User     *User  `json:"user"`
+	AccessToken *Token `json:"accessToken"`
+	User        *User  `json:"user"`
 }
 
 // Вход в сервис обработки путевых листов.
@@ -27,6 +27,13 @@ type Login struct {
 // Refresh Token для получения нового Access Token и Refresh Token.
 type RefreshToken struct {
 	Response string `json:"response"`
+}
+
+// Сгенерированный сервером Access Token и Refresh Token для обновления.
+type Token struct {
+	AccessToken  string `json:"accessToken"`
+	ExpiredAt    string `json:"expiredAt"`
+	RefreshToken string `json:"refreshToken"`
 }
 
 // Роли сервиса.

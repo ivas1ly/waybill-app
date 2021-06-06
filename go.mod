@@ -4,6 +4,8 @@ go 1.16
 
 // +heroku goVersion go1.16
 
+replace github.com/99designs/gqlgen v0.13.0 => github.com/arsmn/gqlgen v0.13.2
+
 require (
 	github.com/99designs/gqlgen v0.13.0
 	github.com/Masterminds/goutils v1.1.1 // indirect
@@ -16,7 +18,9 @@ require (
 	github.com/aokoli/goutils v1.1.1 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/go-chi/chi/v5 v5.0.3 // indirect
+	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
+	github.com/gofiber/fiber/v2 v2.12.0 // indirect
+	github.com/gofiber/jwt/v2 v2.2.2 // indirect
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.2.0 // indirect
@@ -26,7 +30,7 @@ require (
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/jackc/pgproto3/v2 v2.0.7 // indirect
 	github.com/jaytaylor/html2text v0.0.0-20200412013138-3577fbdbcff7 // indirect
-	github.com/klauspost/compress v1.12.3 // indirect
+	github.com/klauspost/compress v1.13.0 // indirect
 	github.com/matcornic/hermes/v2 v2.1.0 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
@@ -39,7 +43,6 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sethvargo/go-password v0.2.0 // indirect
 	github.com/spf13/viper v1.7.1
-	github.com/valyala/fasthttp v1.25.0 // indirect
 	github.com/vanng822/go-premailer v1.20.1 // indirect
 	github.com/vektah/gqlparser/v2 v2.1.0
 	go.uber.org/multierr v1.7.0 // indirect

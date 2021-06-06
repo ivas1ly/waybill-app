@@ -3,15 +3,24 @@ package server
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
-	"github.com/rs/cors"
+	"github.com/ivas1ly/waybill-app/middleware"
 
-	"github.com/go-chi/chi/v5/middleware"
+	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
+	"github.com/99designs/gqlgen/graphql/playground"
 
-	"github.com/go-chi/chi/v5"
+	"github.com/gofiber/fiber/v2/middleware/compress"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/csrf"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
+	"github.com/gofiber/fiber/v2/utils"
+
+	"github.com/gofiber/fiber/v2"
 
 	"github.com/spf13/viper"
 
@@ -20,10 +29,6 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	gl "gorm.io/gorm/logger"
-
-	"github.com/99designs/gqlgen/graphql/handler"
-	"github.com/99designs/gqlgen/graphql/handler/extension"
-	"github.com/99designs/gqlgen/graphql/playground"
 
 	"github.com/ivas1ly/waybill-app/database"
 	"github.com/ivas1ly/waybill-app/domain"
@@ -59,59 +64,81 @@ func (a *App) Run(port string) {
 
 	d := domain.NewDomain(a.logger, usersRepository, waybillsRepository, driversRepository, carsRepository)
 
-	router := chi.NewRouter()
-	router.Use(cors.New(cors.Options{
-		//AllowedOrigins:   []string{"http://localhost:8000"},
+	app := fiber.New(fiber.Config{
+		ServerHeader:          "Fiber",
+		BodyLimit:             4 * 1024 * 1024,
+		Concurrency:           256 * 1024,
+		ReadTimeout:           2 * time.Minute,
+		WriteTimeout:          2 * time.Minute,
+		DisableStartupMessage: false,
+	})
+	app.Use(cors.New(cors.Config{
 		AllowCredentials: true,
-		//AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		Debug: false,
-		//MaxAge:           300,
-	}).Handler)
-	router.Use(middleware.RequestID)
-	router.Use(middleware.Logger)
-	router.Use(middleware.Recoverer)
-	//router.Use(appCustomMiddleware.Auth(usersRepository))
-	/*router.Use(csrf.Protect(
-		[]byte("a-32-byte-long-key-goes-here"),
-		csrf.TrustedOrigins([]string{"*"}),
-		csrf.Secure(false),
-		csrf.HttpOnly(false),
-	))*/
+		AllowMethods:     "GET,POST",
+	}))
+	app.Use(compress.New(compress.Config{
+		Level: compress.LevelBestSpeed,
+	}))
+	app.Use(csrf.New(csrf.Config{
+		KeyLookup:      "cookie:csrf_waybill",
+		CookieName:     "csrf_waybill",
+		CookieHTTPOnly: true,
+		CookieSameSite: "Strict",
+		Expiration:     30 * time.Minute,
+		KeyGenerator:   utils.UUIDv4,
+		ContextKey:     "csrf_waybill",
+	}))
+	app.Use(limiter.New(limiter.Config{
+		Next: func(c *fiber.Ctx) bool {
+			return c.IP() == "127.0.0.1"
+		},
+		KeyGenerator: func(c *fiber.Ctx) string {
+			return c.Get("x-forwarded-for")
+		},
+		Max:        20,
+		Expiration: 1 * time.Minute,
+		LimitReached: func(c *fiber.Ctx) error {
+			return c.SendStatus(fiber.StatusTooManyRequests)
+		},
+	}))
+	app.Use(middleware.Auth(d))
 
-	router.Route("/query", func(r chi.Router) {
-		schema := generated.NewExecutableSchema(generated.Config{
-			Resolvers: &graph.Resolver{Domain: d}})
-		srv := handler.NewDefaultServer(schema)
-		srv.Use(extension.FixedComplexityLimit(300))
+	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{
+		Resolvers: &graph.Resolver{Domain: d},
+	}))
+	srv.Use(extension.FixedComplexityLimit(300))
+	gqlHandler := srv.Handler()
+	pg := playground.Handler("GraphQL playground", "/query")
 
-		r.Handle("/", srv)
+	app.All("/query", func(c *fiber.Ctx) error {
+		gqlHandler(c.Context())
+		return nil
 	})
 
-	pg := playground.Handler("GraphQL playground", "/query")
-	router.Get("/", pg)
+	app.All("/", func(c *fiber.Ctx) error {
+		pg(c.Context())
+		return nil
+	})
 
 	a.logger.Info(fmt.Sprintf("Connect to http://localhost:%s/ for GraphQL playground", port))
-	if err := http.ListenAndServe(":"+port, router); err != nil {
-		a.logger.Fatal(fmt.Sprintf("%+v", err))
-	}
-	/*
-		// Listen from a different goroutine
-		go func() {
-			if err := http.ListenAndServe(":"+port, router); err != nil {
-				a.logger.Fatal(fmt.Sprintf("%+v", err))
-			}
-		}()
 
-		c := make(chan os.Signal, 1)                    // Create channel to signify a signal being sent
-		signal.Notify(c, os.Interrupt, syscall.SIGTERM) // When an interrupt or termination signal is sent, notify the channel
+	// Listen from a different goroutine
+	go func() {
+		if err := app.Listen(":" + port); err != nil {
+			a.logger.Fatal(fmt.Sprintf("%+v", err))
+		}
+	}()
 
-		_ = <-c // This blocks the main thread until an interrupt is received
-		a.logger.Info("Gracefully shutting down...")
-		//_ = http.Server.Shutdown(router, context.Background())
+	c := make(chan os.Signal, 1)                    // Create channel to signify a signal being sent
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM) // When an interrupt or termination signal is sent, notify the channel
 
-		a.logger.Info("Running cleanup tasks...")
-		// Your cleanup tasks go here
-		a.logger.Info("Server was successful shutdown."*/
+	_ = <-c // This blocks the main thread until an interrupt is received
+	a.logger.Info("Gracefully shutting down...")
+	_ = app.Shutdown()
+
+	a.logger.Info("Running cleanup tasks...")
+	// Your cleanup tasks go here
+	a.logger.Info("Fiber was successful shutdown.")
 }
 
 func ConnectDatabase(logger *zap.Logger) *gorm.DB {

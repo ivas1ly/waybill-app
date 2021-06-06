@@ -1,86 +1,37 @@
 package middleware
 
 import (
-	"context"
-	"net/http"
-	"strings"
-
-	"github.com/ivas1ly/waybill-app/models"
-
-	"github.com/pkg/errors"
+	"github.com/form3tech-oss/jwt-go"
+	"github.com/gofiber/fiber/v2"
+	jwtware "github.com/gofiber/jwt/v2"
+	"github.com/ivas1ly/waybill-app/domain"
 	"github.com/spf13/viper"
-
-	"github.com/dgrijalva/jwt-go"
-	"github.com/dgrijalva/jwt-go/request"
-	"github.com/ivas1ly/waybill-app/database"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
-const ContextCurrentUserKey = "currentUser"
+func Auth(d *domain.Domain) fiber.Handler {
 
-func Auth(repository database.UsersRepository) func(handler http.Handler) http.Handler {
-	return func(handler http.Handler) http.Handler {
-		return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-			token, err := parseToken(request)
+	return jwtware.New(jwtware.Config{
+		SigningKey: []byte(viper.GetString("auth.signing_key")),
+		SuccessHandler: func(c *fiber.Ctx) error {
+			d.Logger.Info("Valid JWT")
+			u := c.Locals("user").(*jwt.Token)
+			claims := u.Claims.(jwt.MapClaims)
+			d.Logger.Info(claims["sub"].(string))
+
+			user, err := d.UsersRepository.GetUserByID(claims["sub"].(string))
 			if err != nil {
-				handler.ServeHTTP(writer, request)
-				return
+				d.Logger.Info("Can't get data from database.")
+				return gqlerror.Errorf("Internal server error.")
 			}
 
-			claims, ok := token.Claims.(jwt.MapClaims)
-
-			if !ok || !token.Valid {
-				handler.ServeHTTP(writer, request)
-				return
-			}
-
-			user, err := repository.GetUserByID(claims["sub"].(string))
-			if err != nil {
-				handler.ServeHTTP(writer, request)
-				return
-			}
-			ctx := context.WithValue(request.Context(), ContextCurrentUserKey, user)
-			handler.ServeHTTP(writer, request.WithContext(ctx))
-		})
-	}
-}
-
-func getUserFromContext(ctx context.Context) (*models.User, error) {
-	if ctx.Value(ContextCurrentUserKey) == nil {
-		return nil, errors.New("Can't get user from context")
-	}
-
-	user, ok := ctx.Value(ContextCurrentUserKey).(*models.User)
-	if !ok || user.ID == "" {
-		return nil, errors.New("Can't get user from context")
-	}
-
-	return user, nil
-}
-
-var authHeaderExtractor = &request.PostExtractionFilter{
-	Extractor: request.HeaderExtractor{"Authorization"},
-	Filter:    stripBearerPrefixFromToken,
-}
-
-func stripBearerPrefixFromToken(token string) (string, error) {
-	bearer := "BEARER"
-
-	if len(token) > len(bearer) && strings.ToUpper(token[0:len(bearer)]) == bearer {
-		return token[len(bearer)+1:], nil
-	}
-
-	return token, nil
-}
-
-var authExtractor = &request.MultiExtractor{
-	authHeaderExtractor,
-	request.ArgumentExtractor{"access_token"},
-}
-
-func parseToken(r *http.Request) (*jwt.Token, error) {
-	jwt, err := request.ParseFromRequest(r, authExtractor, func(token *jwt.Token) (interface{}, error) {
-		t := []byte(viper.GetString("auth.signing_key"))
-		return t, nil
+			c.Locals("CurrentUser", user)
+			return c.Next()
+		},
+		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
+			d.Logger.Info("Empty or invalid JWT.")
+			return ctx.Next()
+		},
+		ContextKey: "user",
 	})
-	return jwt, errors.Wrap(err, "JWT Parse error ")
 }

@@ -8,11 +8,19 @@ enum Role {
   DRIVER
 }
 
-"Результат проверки Access Token и пользователь. для которого он был создан."
+"Сгенерированный сервером Access Token и Refresh Token для обновления."
+type Token {
+  token: String!
+  expiredAt: String!
+  refreshToken: String!
+}
+
+"Результат проверки Access Token и пользователь, для которого он был создан."
 type AuthResponse {
-  response: String!
+  accessToken: Token!
   user: User!
 }
+
 "Refresh Token для получения нового Access Token и Refresh Token."
 input RefreshToken {
   response: String!
@@ -245,10 +253,10 @@ input EditWaybill {
 }
 
 type Mutation {
-  login(input: Login): String!
-  refreshToken: String!
+  login(input: Login!): AuthResponse!
+  refreshToken: AuthResponse!
   logout: String!
-  createUser(input: NewUser!): AuthResponse!
+  createUser(input: NewUser!): User!
   updateUser(id: ID!, input: UpdateUser!): User!
   editUser(id: ID!, input: EditUser!): User!
   deleteUser(id: ID!): String!

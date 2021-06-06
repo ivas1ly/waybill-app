@@ -11,11 +11,11 @@ import (
 	"github.com/ivas1ly/waybill-app/models"
 )
 
-func (r *mutationResolver) Login(ctx context.Context, input *models.Login) (string, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *mutationResolver) Login(ctx context.Context, input models.Login) (*models.AuthResponse, error) {
+	return r.Domain.LoginUser(ctx, input)
 }
 
-func (r *mutationResolver) RefreshToken(ctx context.Context) (string, error) {
+func (r *mutationResolver) RefreshToken(ctx context.Context) (*models.AuthResponse, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
@@ -23,7 +23,7 @@ func (r *mutationResolver) Logout(ctx context.Context) (string, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *mutationResolver) CreateUser(ctx context.Context, input models.NewUser) (*models.AuthResponse, error) {
+func (r *mutationResolver) CreateUser(ctx context.Context, input models.NewUser) (*models.User, error) {
 	return r.Domain.CreateUser(ctx, input)
 }
 
@@ -84,8 +84,9 @@ func (r *queryResolver) AllUsers(ctx context.Context, limit *int, offset *int) (
 }
 
 func (r *queryResolver) User(ctx context.Context, id string) (*models.User, error) {
-	fmt.Print(id)
-	return r.Domain.UsersRepository.GetUserByID(id)
+	//fmt.Print(id)
+
+	return r.Domain.GetUser(ctx, id)
 }
 
 func (r *queryResolver) AllDrivers(ctx context.Context, limit *int, offset *int) ([]*models.Driver, error) {
@@ -114,7 +115,6 @@ func (r *queryResolver) AllWaybillsByUserID(ctx context.Context, id string, limi
 
 func (r *queryResolver) Waybill(ctx context.Context, id string) (*models.Waybill, error) {
 	return r.Domain.WaybillsRepository.GetWaybillByID(id)
-	//panic(fmt.Errorf("not implemented"))
 }
 
 // Mutation returns generated.MutationResolver implementation.

@@ -45,8 +45,8 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	AuthResponse struct {
-		Response func(childComplexity int) int
-		User     func(childComplexity int) int
+		AccessToken func(childComplexity int) int
+		User        func(childComplexity int) int
 	}
 
 	Car struct {
@@ -82,7 +82,7 @@ type ComplexityRoot struct {
 		DeleteWaybill func(childComplexity int, id string) int
 		EditUser      func(childComplexity int, id string, input models.EditUser) int
 		EditWaybill   func(childComplexity int, id string, input models.EditWaybill) int
-		Login         func(childComplexity int, input *models.Login) int
+		Login         func(childComplexity int, input models.Login) int
 		Logout        func(childComplexity int) int
 		RefreshToken  func(childComplexity int) int
 		UpdateCar     func(childComplexity int, id string, input models.UpdateCar) int
@@ -101,6 +101,12 @@ type ComplexityRoot struct {
 		Driver              func(childComplexity int, id string) int
 		User                func(childComplexity int, id string) int
 		Waybill             func(childComplexity int, id string) int
+	}
+
+	Token struct {
+		AccessToken  func(childComplexity int) int
+		ExpiredAt    func(childComplexity int) int
+		RefreshToken func(childComplexity int) int
 	}
 
 	User struct {
@@ -135,10 +141,10 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	Login(ctx context.Context, input *models.Login) (string, error)
-	RefreshToken(ctx context.Context) (string, error)
+	Login(ctx context.Context, input models.Login) (*models.AuthResponse, error)
+	RefreshToken(ctx context.Context) (*models.AuthResponse, error)
 	Logout(ctx context.Context) (string, error)
-	CreateUser(ctx context.Context, input models.NewUser) (*models.AuthResponse, error)
+	CreateUser(ctx context.Context, input models.NewUser) (*models.User, error)
 	UpdateUser(ctx context.Context, id string, input models.UpdateUser) (*models.User, error)
 	EditUser(ctx context.Context, id string, input models.EditUser) (*models.User, error)
 	DeleteUser(ctx context.Context, id string) (string, error)
@@ -180,12 +186,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
-	case "AuthResponse.response":
-		if e.complexity.AuthResponse.Response == nil {
+	case "AuthResponse.accessToken":
+		if e.complexity.AuthResponse.AccessToken == nil {
 			break
 		}
 
-		return e.complexity.AuthResponse.Response(childComplexity), true
+		return e.complexity.AuthResponse.AccessToken(childComplexity), true
 
 	case "AuthResponse.user":
 		if e.complexity.AuthResponse.User == nil {
@@ -436,7 +442,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.Login(childComplexity, args["input"].(*models.Login)), true
+		return e.complexity.Mutation.Login(childComplexity, args["input"].(models.Login)), true
 
 	case "Mutation.logout":
 		if e.complexity.Mutation.Logout == nil {
@@ -607,6 +613,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Waybill(childComplexity, args["id"].(string)), true
+
+	case "Token.accessToken":
+		if e.complexity.Token.AccessToken == nil {
+			break
+		}
+
+		return e.complexity.Token.AccessToken(childComplexity), true
+
+	case "Token.expiredAt":
+		if e.complexity.Token.ExpiredAt == nil {
+			break
+		}
+
+		return e.complexity.Token.ExpiredAt(childComplexity), true
+
+	case "Token.refreshToken":
+		if e.complexity.Token.RefreshToken == nil {
+			break
+		}
+
+		return e.complexity.Token.RefreshToken(childComplexity), true
 
 	case "User.createdAt":
 		if e.complexity.User.CreatedAt == nil {
@@ -865,11 +892,19 @@ enum Role {
   DRIVER
 }
 
-"Результат проверки Access Token и пользователь. для которого он был создан."
+"Сгенерированный сервером Access Token и Refresh Token для обновления."
+type Token {
+  accessToken: String!
+  expiredAt: String!
+  refreshToken: String!
+}
+
+"Результат проверки Access Token и пользователь, для которого он был создан."
 type AuthResponse {
-  response: String!
+  accessToken: Token!
   user: User!
 }
+
 "Refresh Token для получения нового Access Token и Refresh Token."
 input RefreshToken {
   response: String!
@@ -1102,10 +1137,10 @@ input EditWaybill {
 }
 
 type Mutation {
-  login(input: Login): String!
-  refreshToken: String!
+  login(input: Login!): AuthResponse!
+  refreshToken: AuthResponse!
   logout: String!
-  createUser(input: NewUser!): AuthResponse!
+  createUser(input: NewUser!): User!
   updateUser(id: ID!, input: UpdateUser!): User!
   editUser(id: ID!, input: EditUser!): User!
   deleteUser(id: ID!): String!
@@ -1310,10 +1345,10 @@ func (ec *executionContext) field_Mutation_editWaybill_args(ctx context.Context,
 func (ec *executionContext) field_Mutation_login_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *models.Login
+	var arg0 models.Login
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalOLogin2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐLogin(ctx, tmp)
+		arg0, err = ec.unmarshalNLogin2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐLogin(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1705,7 +1740,7 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _AuthResponse_response(ctx context.Context, field graphql.CollectedField, obj *models.AuthResponse) (ret graphql.Marshaler) {
+func (ec *executionContext) _AuthResponse_accessToken(ctx context.Context, field graphql.CollectedField, obj *models.AuthResponse) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1723,7 +1758,7 @@ func (ec *executionContext) _AuthResponse_response(ctx context.Context, field gr
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Response, nil
+		return obj.AccessToken, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1735,9 +1770,9 @@ func (ec *executionContext) _AuthResponse_response(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*models.Token)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNToken2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐToken(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _AuthResponse_user(ctx context.Context, field graphql.CollectedField, obj *models.AuthResponse) (ret graphql.Marshaler) {
@@ -2357,7 +2392,7 @@ func (ec *executionContext) _Mutation_login(ctx context.Context, field graphql.C
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().Login(rctx, args["input"].(*models.Login))
+		return ec.resolvers.Mutation().Login(rctx, args["input"].(models.Login))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2369,9 +2404,9 @@ func (ec *executionContext) _Mutation_login(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*models.AuthResponse)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNAuthResponse2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐAuthResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_refreshToken(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2404,9 +2439,9 @@ func (ec *executionContext) _Mutation_refreshToken(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*models.AuthResponse)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNAuthResponse2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐAuthResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_logout(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2481,9 +2516,9 @@ func (ec *executionContext) _Mutation_createUser(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*models.AuthResponse)
+	res := resTmp.(*models.User)
 	fc.Result = res
-	return ec.marshalNAuthResponse2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐAuthResponse(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_updateUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3479,6 +3514,111 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	res := resTmp.(*introspection.Schema)
 	fc.Result = res
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Token_accessToken(ctx context.Context, field graphql.CollectedField, obj *models.Token) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Token",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AccessToken, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Token_expiredAt(ctx context.Context, field graphql.CollectedField, obj *models.Token) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Token",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ExpiredAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Token_refreshToken(ctx context.Context, field graphql.CollectedField, obj *models.Token) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Token",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RefreshToken, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *models.User) (ret graphql.Marshaler) {
@@ -5940,8 +6080,8 @@ func (ec *executionContext) _AuthResponse(ctx context.Context, sel ast.Selection
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("AuthResponse")
-		case "response":
-			out.Values[i] = ec._AuthResponse_response(ctx, field, obj)
+		case "accessToken":
+			out.Values[i] = ec._AuthResponse_accessToken(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -6338,6 +6478,43 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
 			out.Values[i] = ec._Query___schema(ctx, field)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var tokenImplementors = []string{"Token"}
+
+func (ec *executionContext) _Token(ctx context.Context, sel ast.SelectionSet, obj *models.Token) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, tokenImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Token")
+		case "accessToken":
+			out.Values[i] = ec._Token_accessToken(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "expiredAt":
+			out.Values[i] = ec._Token_expiredAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "refreshToken":
+			out.Values[i] = ec._Token_refreshToken(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6932,6 +7109,11 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
+func (ec *executionContext) unmarshalNLogin2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐLogin(ctx context.Context, v interface{}) (models.Login, error) {
+	res, err := ec.unmarshalInputLogin(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNNewCar2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐNewCar(ctx context.Context, v interface{}) (models.NewCar, error) {
 	res, err := ec.unmarshalInputNewCar(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -6990,6 +7172,16 @@ func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel as
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNToken2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐToken(ctx context.Context, sel ast.SelectionSet, v *models.Token) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Token(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNUpdateCar2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐUpdateCar(ctx context.Context, v interface{}) (models.UpdateCar, error) {
@@ -7410,14 +7602,6 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 		return graphql.Null
 	}
 	return graphql.MarshalInt(*v)
-}
-
-func (ec *executionContext) unmarshalOLogin2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐLogin(ctx context.Context, v interface{}) (*models.Login, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputLogin(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalORole2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐRole(ctx context.Context, v interface{}) (*models.Role, error) {

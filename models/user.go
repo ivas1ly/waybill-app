@@ -68,24 +68,8 @@ func (u *User) HashPassword(password string) error {
 	return nil
 }
 
-func (u *User) HashTOTP(totp string) error {
-	byteTotp := []byte(totp)
-	hashedTotp, err := bcrypt.GenerateFromPassword(byteTotp, 14)
-	if err != nil {
-		return err
-	}
-
-	u.Secret = string(hashedTotp)
-
-	return nil
-}
-
 func (u *User) ComparePassword(password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
-}
-
-func (u *User) CompareTOTP(totp string) error {
-	return bcrypt.CompareHashAndPassword([]byte(u.Secret), []byte(totp))
 }
 
 func (u *User) GenerateTokenPair() (map[string]string, error) {
@@ -94,8 +78,9 @@ func (u *User) GenerateTokenPair() (map[string]string, error) {
 		return nil, err
 	}
 
+	expiresAt := time.Now().Add(time.Minute * 30)
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
-		ExpiresAt: time.Now().Add(time.Minute * 30).Unix(),
+		ExpiresAt: expiresAt.Unix(),
 		Id:        id.String(),
 		IssuedAt:  time.Now().Unix(),
 		Issuer:    "waybill-app-jwt",
@@ -110,7 +95,7 @@ func (u *User) GenerateTokenPair() (map[string]string, error) {
 	refresh := jwt.New(jwt.SigningMethodHS256)
 	refreshClaims := refresh.Claims.(jwt.MapClaims)
 	refreshClaims["sub"] = u.ID
-	refreshClaims["exp"] = time.Now().Add(time.Hour * 168).Unix() //168 hours = 7 days = 1 week
+	refreshClaims["exp"] = time.Now().Add(time.Hour * 720).Unix() //720 hours = 30 days = 1 month
 
 	refreshToken, err := refresh.SignedString([]byte(viper.GetString("auth.signing_key")))
 	if err != nil {
@@ -119,6 +104,7 @@ func (u *User) GenerateTokenPair() (map[string]string, error) {
 
 	return map[string]string{
 		"accessToken":  token,
+		"expiresAt":    expiresAt.Format(time.RFC3339),
 		"refreshToken": refreshToken,
 	}, nil
 }

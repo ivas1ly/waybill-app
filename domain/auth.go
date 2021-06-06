@@ -3,6 +3,7 @@ package domain
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"image/png"
 
 	"github.com/ivas1ly/waybill-app/internal"
@@ -18,7 +19,33 @@ import (
 	"github.com/ivas1ly/waybill-app/models"
 )
 
-func (d *Domain) CreateUser(ctx context.Context, input models.NewUser) (*models.AuthResponse, error) {
+func (d *Domain) LoginUser(ctx context.Context, input models.Login) (*models.AuthResponse, error) {
+	user, err := d.UsersRepository.GetUserByEmail(input.Email)
+	if err != nil {
+		d.Logger.Error("Bad credentials. Incorrect login.")
+		return nil, gqlerror.Errorf("Incorrect login or password.")
+	}
+
+	err = user.ComparePassword(input.Password)
+	if err != nil {
+		d.Logger.Error("Bad credentials. Incorrect password.")
+		return nil, gqlerror.Errorf("Incorrect login or password.")
+	}
+	token, err := user.GenerateTokenPair()
+	d.Logger.Info(token["accessToken"])
+	d.Logger.Info(token["refreshToken"])
+
+	return &models.AuthResponse{
+		AccessToken: &models.Token{
+			AccessToken:  token["accessToken"],
+			ExpiredAt:    token["expiresAt"],
+			RefreshToken: token["refreshToken"],
+		},
+		User: user,
+	}, nil
+}
+
+func (d *Domain) CreateUser(ctx context.Context, input models.NewUser) (*models.User, error) {
 	_, err := d.UsersRepository.GetUserByEmail(input.Email)
 	if err == nil {
 		d.Logger.Error("Email already in use.")
@@ -85,8 +112,23 @@ func (d *Domain) CreateUser(ctx context.Context, input models.NewUser) (*models.
 		return nil, gqlerror.Errorf("Internal server error.")
 	}
 
-	return &models.AuthResponse{
-		Response: "User created successfully.",
-		User:     user,
-	}, nil
+	return user, nil
+}
+
+func (d *Domain) GetCurrentUserFromCTX(ctx context.Context) (*models.User, error) {
+	fmt.Print(fmt.Sprintf("FROM CONTEXT: %v", ctx.Value("current\n\n")))
+	if ctx.Value("CurrentUser") == nil {
+		//fmt.Print(ctx.Value("user\n\n"))
+		//d.Logger.Info()
+		d.Logger.Error("There is no user in the context. Access is denied.")
+		return nil, gqlerror.Errorf("Unauthenticated request. Access Denied.")
+	}
+
+	user, ok := ctx.Value("CurrentUser").(*models.User)
+	if !ok || user.ID == "" {
+		d.Logger.Error("There is no user in the context. Access is denied.")
+		return nil, gqlerror.Errorf("Unauthenticated request. Access Denied.")
+	}
+
+	return user, nil
 }
