@@ -98,15 +98,16 @@ type ComplexityRoot struct {
 		AllWaybills         func(childComplexity int, limit *int, offset *int) int
 		AllWaybillsByUserID func(childComplexity int, id string, limit *int, offset *int) int
 		Car                 func(childComplexity int, id string) int
+		CreateReportTable   func(childComplexity int, filter models.TableFilter) int
 		Driver              func(childComplexity int, id string) int
 		User                func(childComplexity int, id string) int
 		Waybill             func(childComplexity int, id string) int
 	}
 
 	Token struct {
-		AccessToken  func(childComplexity int) int
 		ExpiredAt    func(childComplexity int) int
 		RefreshToken func(childComplexity int) int
+		Token        func(childComplexity int) int
 	}
 
 	User struct {
@@ -115,16 +116,15 @@ type ComplexityRoot struct {
 		ID        func(childComplexity int) int
 		Role      func(childComplexity int) int
 		UpdatedAt func(childComplexity int) int
-		Waybills  func(childComplexity int) int
 	}
 
 	Waybill struct {
-		Car                 func(childComplexity int, id string) int
+		Car                 func(childComplexity int) int
 		CarID               func(childComplexity int) int
 		CreatedAt           func(childComplexity int) int
 		DateEnd             func(childComplexity int) int
 		DateStart           func(childComplexity int) int
-		Driver              func(childComplexity int, id string) int
+		Driver              func(childComplexity int) int
 		DriverID            func(childComplexity int) int
 		FuelConsumptionFact func(childComplexity int) int
 		FuelFill            func(childComplexity int) int
@@ -135,7 +135,7 @@ type ComplexityRoot struct {
 		MileageEnd          func(childComplexity int) int
 		MileageStart        func(childComplexity int) int
 		UpdatedAt           func(childComplexity int) int
-		User                func(childComplexity int, id string) int
+		User                func(childComplexity int) int
 		UserID              func(childComplexity int) int
 	}
 }
@@ -169,6 +169,7 @@ type QueryResolver interface {
 	AllWaybills(ctx context.Context, limit *int, offset *int) ([]*models.Waybill, error)
 	AllWaybillsByUserID(ctx context.Context, id string, limit *int, offset *int) ([]*models.Waybill, error)
 	Waybill(ctx context.Context, id string) (*models.Waybill, error)
+	CreateReportTable(ctx context.Context, filter models.TableFilter) (string, error)
 }
 
 type executableSchema struct {
@@ -578,6 +579,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Car(childComplexity, args["id"].(string)), true
 
+	case "Query.createReportTable":
+		if e.complexity.Query.CreateReportTable == nil {
+			break
+		}
+
+		args, err := ec.field_Query_createReportTable_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.CreateReportTable(childComplexity, args["filter"].(models.TableFilter)), true
+
 	case "Query.driver":
 		if e.complexity.Query.Driver == nil {
 			break
@@ -614,13 +627,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Waybill(childComplexity, args["id"].(string)), true
 
-	case "Token.accessToken":
-		if e.complexity.Token.AccessToken == nil {
-			break
-		}
-
-		return e.complexity.Token.AccessToken(childComplexity), true
-
 	case "Token.expiredAt":
 		if e.complexity.Token.ExpiredAt == nil {
 			break
@@ -634,6 +640,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Token.RefreshToken(childComplexity), true
+
+	case "Token.token":
+		if e.complexity.Token.Token == nil {
+			break
+		}
+
+		return e.complexity.Token.Token(childComplexity), true
 
 	case "User.createdAt":
 		if e.complexity.User.CreatedAt == nil {
@@ -670,24 +683,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.UpdatedAt(childComplexity), true
 
-	case "User.waybills":
-		if e.complexity.User.Waybills == nil {
-			break
-		}
-
-		return e.complexity.User.Waybills(childComplexity), true
-
 	case "Waybill.car":
 		if e.complexity.Waybill.Car == nil {
 			break
 		}
 
-		args, err := ec.field_Waybill_car_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Waybill.Car(childComplexity, args["id"].(string)), true
+		return e.complexity.Waybill.Car(childComplexity), true
 
 	case "Waybill.carID":
 		if e.complexity.Waybill.CarID == nil {
@@ -722,12 +723,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Waybill_driver_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Waybill.Driver(childComplexity, args["id"].(string)), true
+		return e.complexity.Waybill.Driver(childComplexity), true
 
 	case "Waybill.driverID":
 		if e.complexity.Waybill.DriverID == nil {
@@ -804,12 +800,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Waybill_user_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Waybill.User(childComplexity, args["id"].(string)), true
+		return e.complexity.Waybill.User(childComplexity), true
 
 	case "Waybill.userID":
 		if e.complexity.Waybill.UserID == nil {
@@ -894,7 +885,7 @@ enum Role {
 
 "Сгенерированный сервером Access Token и Refresh Token для обновления."
 type Token {
-  accessToken: String!
+  token: String!
   expiredAt: String!
   refreshToken: String!
 }
@@ -928,8 +919,6 @@ type User {
   email: String!
   "Роль в сервисе."
   role: Role!
-  "Путевые листы, созданные пользователем."
-  waybills: [Waybill]
   "Дата создания пользователя."
   createdAt: Time!
   "Дата последнего обновления данных пользователя."
@@ -1004,11 +993,11 @@ type Waybill {
   "Возможность редактировать путевой лист."
   isActive: Boolean!
   "Водитель, к которому относится путевой лист."
-  driver(id: ID! = driverID): Driver!
+  driver: Driver!
   "Пользователь, создавший путевой лист."
-  user(id: ID! = userID): User!
+  user: User!
   "Машина."
-  car(id: ID! = carID): Car!
+  car: Car!
   "Дата создания путевого листа."
   createdAt: Time!
   "Дата последнего обновления данных в путевом листе."
@@ -1136,6 +1125,17 @@ input EditWaybill {
   isActive: Boolean
 }
 
+input TableFilter {
+  period: PeriodFilter
+  cars: [ID!]
+  fuelType: String!
+}
+
+input PeriodFilter {
+  start: Time!
+  end: Time
+}
+
 type Mutation {
   login(input: Login!): AuthResponse!
   refreshToken: AuthResponse!
@@ -1166,6 +1166,7 @@ type Query {
   allWaybills(limit: Int = 10, offset: Int = 0): [Waybill!]!
   allWaybillsByUserID(id: ID!, limit: Int = 10, offset: Int = 0): [Waybill!]!
   waybill(id: ID!): Waybill!
+  createReportTable(filter: TableFilter!): String!
 }`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -1612,6 +1613,21 @@ func (ec *executionContext) field_Query_car_args(ctx context.Context, rawArgs ma
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_createReportTable_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.TableFilter
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg0, err = ec.unmarshalNTableFilter2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐTableFilter(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_driver_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1643,51 +1659,6 @@ func (ec *executionContext) field_Query_user_args(ctx context.Context, rawArgs m
 }
 
 func (ec *executionContext) field_Query_waybill_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Waybill_car_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Waybill_driver_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Waybill_user_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -3445,6 +3416,48 @@ func (ec *executionContext) _Query_waybill(ctx context.Context, field graphql.Co
 	return ec.marshalNWaybill2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐWaybill(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_createReportTable(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_createReportTable_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().CreateReportTable(rctx, args["filter"].(models.TableFilter))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -3516,7 +3529,7 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Token_accessToken(ctx context.Context, field graphql.CollectedField, obj *models.Token) (ret graphql.Marshaler) {
+func (ec *executionContext) _Token_token(ctx context.Context, field graphql.CollectedField, obj *models.Token) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -3534,7 +3547,7 @@ func (ec *executionContext) _Token_accessToken(ctx context.Context, field graphq
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.AccessToken, nil
+		return obj.Token, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3724,38 +3737,6 @@ func (ec *executionContext) _User_role(ctx context.Context, field graphql.Collec
 	res := resTmp.(models.Role)
 	fc.Result = res
 	return ec.marshalNRole2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐRole(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _User_waybills(ctx context.Context, field graphql.CollectedField, obj *models.User) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "User",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Waybills, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*models.Waybill)
-	fc.Result = res
-	return ec.marshalOWaybill2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐWaybill(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_createdAt(ctx context.Context, field graphql.CollectedField, obj *models.User) (ret graphql.Marshaler) {
@@ -4290,13 +4271,6 @@ func (ec *executionContext) _Waybill_driver(ctx context.Context, field graphql.C
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Waybill_driver_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Driver, nil
@@ -4332,13 +4306,6 @@ func (ec *executionContext) _Waybill_user(ctx context.Context, field graphql.Col
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Waybill_user_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.User, nil
@@ -4374,13 +4341,6 @@ func (ec *executionContext) _Waybill_car(ctx context.Context, field graphql.Coll
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Waybill_car_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Car, nil
@@ -5881,6 +5841,34 @@ func (ec *executionContext) unmarshalInputNewWaybill(ctx context.Context, obj in
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputPeriodFilter(ctx context.Context, obj interface{}) (models.PeriodFilter, error) {
+	var it models.PeriodFilter
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "start":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start"))
+			it.Start, err = ec.unmarshalNTime2timeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "end":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end"))
+			it.End, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputRefreshToken(ctx context.Context, obj interface{}) (models.RefreshToken, error) {
 	var it models.RefreshToken
 	var asMap = obj.(map[string]interface{})
@@ -5892,6 +5880,42 @@ func (ec *executionContext) unmarshalInputRefreshToken(ctx context.Context, obj 
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("response"))
 			it.Response, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputTableFilter(ctx context.Context, obj interface{}) (models.TableFilter, error) {
+	var it models.TableFilter
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "period":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("period"))
+			it.Period, err = ec.unmarshalOPeriodFilter2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐPeriodFilter(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "cars":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cars"))
+			it.Cars, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "fuelType":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fuelType"))
+			it.FuelType, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6474,6 +6498,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "createReportTable":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_createReportTable(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
@@ -6500,8 +6538,8 @@ func (ec *executionContext) _Token(ctx context.Context, sel ast.SelectionSet, ob
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Token")
-		case "accessToken":
-			out.Values[i] = ec._Token_accessToken(ctx, field, obj)
+		case "token":
+			out.Values[i] = ec._Token_token(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -6552,8 +6590,6 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "waybills":
-			out.Values[i] = ec._User_waybills(ctx, field, obj)
 		case "createdAt":
 			out.Values[i] = ec._User_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -7159,6 +7195,11 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
+func (ec *executionContext) unmarshalNTableFilter2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐTableFilter(ctx context.Context, v interface{}) (models.TableFilter, error) {
+	res, err := ec.unmarshalInputTableFilter(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
 	res, err := graphql.UnmarshalTime(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -7574,6 +7615,42 @@ func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel as
 	return graphql.MarshalFloat(*v)
 }
 
+func (ec *executionContext) unmarshalOID2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNID2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOID2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNID2string(ctx, sel, v[i])
+	}
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
 	if v == nil {
 		return nil, nil
@@ -7602,6 +7679,14 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 		return graphql.Null
 	}
 	return graphql.MarshalInt(*v)
+}
+
+func (ec *executionContext) unmarshalOPeriodFilter2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐPeriodFilter(ctx context.Context, v interface{}) (*models.PeriodFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputPeriodFilter(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalORole2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐRole(ctx context.Context, v interface{}) (*models.Role, error) {
@@ -7666,53 +7751,6 @@ func (ec *executionContext) marshalOTime2ᚖtimeᚐTime(ctx context.Context, sel
 		return graphql.Null
 	}
 	return graphql.MarshalTime(*v)
-}
-
-func (ec *executionContext) marshalOWaybill2ᚕᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐWaybill(ctx context.Context, sel ast.SelectionSet, v []*models.Waybill) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOWaybill2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐWaybill(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
-func (ec *executionContext) marshalOWaybill2ᚖgithubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐWaybill(ctx context.Context, sel ast.SelectionSet, v *models.Waybill) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Waybill(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

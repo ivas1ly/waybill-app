@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"time"
 )
 
 // Результат проверки Access Token и пользователь, для которого он был создан.
@@ -24,14 +25,25 @@ type Login struct {
 	Totp string `json:"totp"`
 }
 
+type PeriodFilter struct {
+	Start time.Time  `json:"start"`
+	End   *time.Time `json:"end"`
+}
+
 // Refresh Token для получения нового Access Token и Refresh Token.
 type RefreshToken struct {
 	Response string `json:"response"`
 }
 
+type TableFilter struct {
+	Period   *PeriodFilter `json:"period"`
+	Cars     []string      `json:"cars"`
+	FuelType string        `json:"fuelType"`
+}
+
 // Сгенерированный сервером Access Token и Refresh Token для обновления.
 type Token struct {
-	AccessToken  string `json:"accessToken"`
+	Token        string `json:"token"`
 	ExpiredAt    string `json:"expiredAt"`
 	RefreshToken string `json:"refreshToken"`
 }

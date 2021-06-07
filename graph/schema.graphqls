@@ -44,8 +44,6 @@ type User {
   email: String!
   "Роль в сервисе."
   role: Role!
-  "Путевые листы, созданные пользователем."
-  waybills: [Waybill]
   "Дата создания пользователя."
   createdAt: Time!
   "Дата последнего обновления данных пользователя."
@@ -120,11 +118,11 @@ type Waybill {
   "Возможность редактировать путевой лист."
   isActive: Boolean!
   "Водитель, к которому относится путевой лист."
-  driver(id: ID! = driverID): Driver!
+  driver: Driver!
   "Пользователь, создавший путевой лист."
-  user(id: ID! = userID): User!
+  user: User!
   "Машина."
-  car(id: ID! = carID): Car!
+  car: Car!
   "Дата создания путевого листа."
   createdAt: Time!
   "Дата последнего обновления данных в путевом листе."
@@ -252,6 +250,17 @@ input EditWaybill {
   isActive: Boolean
 }
 
+input TableFilter {
+  period: PeriodFilter
+  cars: [ID!]
+  fuelType: String!
+}
+
+input PeriodFilter {
+  start: Time!
+  end: Time
+}
+
 type Mutation {
   login(input: Login!): AuthResponse!
   refreshToken: AuthResponse!
@@ -282,4 +291,5 @@ type Query {
   allWaybills(limit: Int = 10, offset: Int = 0): [Waybill!]!
   allWaybillsByUserID(id: ID!, limit: Int = 10, offset: Int = 0): [Waybill!]!
   waybill(id: ID!): Waybill!
+  createReportTable(filter: TableFilter!): String!
 }

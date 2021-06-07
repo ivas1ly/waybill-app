@@ -14,13 +14,10 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/playground"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/csrf"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
-	"github.com/gofiber/fiber/v2/utils"
-
-	"github.com/gofiber/fiber/v2"
 
 	"github.com/spf13/viper"
 
@@ -79,7 +76,7 @@ func (a *App) Run(port string) {
 	app.Use(compress.New(compress.Config{
 		Level: compress.LevelBestSpeed,
 	}))
-	app.Use(csrf.New(csrf.Config{
+	/*app.Use(csrf.New(csrf.Config{
 		KeyLookup:      "cookie:csrf_waybill",
 		CookieName:     "csrf_waybill",
 		CookieHTTPOnly: true,
@@ -87,7 +84,7 @@ func (a *App) Run(port string) {
 		Expiration:     30 * time.Minute,
 		KeyGenerator:   utils.UUIDv4,
 		ContextKey:     "csrf_waybill",
-	}))
+	}))*/
 	app.Use(limiter.New(limiter.Config{
 		Next: func(c *fiber.Ctx) bool {
 			return c.IP() == "127.0.0.1"

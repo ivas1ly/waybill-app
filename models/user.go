@@ -25,8 +25,6 @@ type User struct {
 	Secret string `json:"-" gorm:"size:255;not null"`
 	// Роль в сервисе.
 	Role Role `json:"role" gorm:"size:20;not null"`
-	// Путевые листы, созданные пользователем.
-	Waybills []*Waybill `json:"waybills" gorm:"foreignKey:UserID;"`
 	// Дата создания пользователя.
 	CreatedAt time.Time `json:"createdAt"`
 	// Дата последнего обновления данных пользователя.
@@ -68,7 +66,7 @@ func (u *User) HashPassword(password string) error {
 	return nil
 }
 
-func (u *User) ComparePassword(password string) error {
+func (u *User) CompareUserPassword(password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
 }
 
@@ -78,12 +76,14 @@ func (u *User) GenerateTokenPair() (map[string]string, error) {
 		return nil, err
 	}
 
-	expiresAt := time.Now().Add(time.Minute * 30)
+	//expiresAt := time.Now().Add(time.Minute * 30)
+	expiresAt := time.Now().Add(time.Hour * 24) //for dev only
+
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
 		ExpiresAt: expiresAt.Unix(),
 		Id:        id.String(),
 		IssuedAt:  time.Now().Unix(),
-		Issuer:    "waybill-app-jwt",
+		Issuer:    "waybill-app",
 		Subject:   u.ID,
 	})
 

@@ -80,7 +80,7 @@ func (r *mutationResolver) DeleteWaybill(ctx context.Context, id string) (string
 }
 
 func (r *queryResolver) AllUsers(ctx context.Context, limit *int, offset *int) ([]*models.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Domain.UsersRepository.GetUsers(limit, offset)
 }
 
 func (r *queryResolver) User(ctx context.Context, id string) (*models.User, error) {
@@ -108,11 +108,15 @@ func (r *queryResolver) AllWaybills(ctx context.Context, limit *int, offset *int
 }
 
 func (r *queryResolver) AllWaybillsByUserID(ctx context.Context, id string, limit *int, offset *int) ([]*models.Waybill, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Domain.WaybillsRepository.GetWaybillsByUserID(id, limit, offset)
 }
 
 func (r *queryResolver) Waybill(ctx context.Context, id string) (*models.Waybill, error) {
 	return r.Domain.WaybillsRepository.GetWaybillByID(id)
+}
+
+func (r *queryResolver) CreateReportTable(ctx context.Context, filter models.TableFilter) (string, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 // Mutation returns generated.MutationResolver implementation.

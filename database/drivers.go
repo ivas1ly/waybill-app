@@ -14,7 +14,7 @@ type DriversRepository struct {
 func (d *DriversRepository) GetDrivers(limit, offset *int) ([]*models.Driver, error) {
 	var drivers []*models.Driver
 
-	result := d.DB.Find(&drivers).Order("id")
+	result := d.DB.Find(&drivers)
 
 	if limit != nil {
 		result.Limit(*limit)

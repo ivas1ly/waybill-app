@@ -1,9 +1,9 @@
 package database
 
 import (
-	"github.com/99designs/gqlgen/example/scalars/model"
 	"github.com/ivas1ly/waybill-app/models"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type WaybillsRepository struct {
@@ -13,7 +13,7 @@ type WaybillsRepository struct {
 func (w *WaybillsRepository) GetWaybills(limit, offset *int) ([]*models.Waybill, error) {
 	var waybills []*models.Waybill
 
-	result := w.DB.Find(&waybills).Order("id")
+	result := w.DB.Model(&waybills)
 
 	if limit != nil {
 		result.Limit(*limit)
@@ -21,7 +21,7 @@ func (w *WaybillsRepository) GetWaybills(limit, offset *int) ([]*models.Waybill,
 	if offset != nil {
 		result.Offset(*offset)
 	}
-	err := result.Error
+	err := result.Find(&waybills).Error
 	if err != nil {
 		return nil, err
 	}
@@ -45,14 +45,16 @@ func (w *WaybillsRepository) Update(waybill *models.Waybill) (*models.Waybill, e
 	return waybill, err
 }
 
-func (w *WaybillsRepository) Delete(waybill *models.Waybill) (*models.Waybill, error) {
-	err := w.DB.Where("id = ?", waybill.ID).Delete(&waybill).Error
-	return waybill, err
+func (w *WaybillsRepository) Delete(id string) (string, error) {
+	if err := w.DB.Where("id = ?", id).Delete(&models.Waybill{}).Error; err != nil {
+		return "", err
+	}
+	return "Record deleted from database.", nil
 }
 
-func (w *WaybillsRepository) GetWaybillsByUserID(user *model.User, limit, offset *int) ([]*models.Waybill, error) {
+func (w *WaybillsRepository) GetWaybillsByUserID(id string, limit, offset *int) ([]*models.Waybill, error) {
 	var waybills []*models.Waybill
-	result := w.DB.Find(&waybills).Where("user_id = ?", user.ID)
+	result := w.DB.Model(&waybills)
 
 	if limit != nil {
 		result.Limit(*limit)
@@ -60,8 +62,8 @@ func (w *WaybillsRepository) GetWaybillsByUserID(user *model.User, limit, offset
 	if offset != nil {
 		result.Offset(*offset)
 	}
-	err := result.Error
-	if err != nil {
+
+	if err := result.Where("user_id = ?", id).Preload("Driver").Preload("Car").Preload("User").Preload(clause.Associations).Find(&waybills).Error; err != nil {
 		return nil, err
 	}
 
