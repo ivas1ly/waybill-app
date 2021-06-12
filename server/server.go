@@ -37,6 +37,7 @@ import (
 type App struct {
 	logger *zap.Logger
 	db     *gorm.DB
+	server *fiber.App
 }
 
 func NewApp() *App {
@@ -45,10 +46,19 @@ func NewApp() *App {
 		_ = zapLogger.Sync()
 	}(zapLogger)
 	db := ConnectDatabase(zapLogger)
+	server := fiber.New(fiber.Config{
+		ServerHeader:          "Fiber",
+		BodyLimit:             4 * 1024 * 1024,
+		Concurrency:           256 * 1024,
+		ReadTimeout:           2 * time.Minute,
+		WriteTimeout:          2 * time.Minute,
+		DisableStartupMessage: false,
+	})
 
 	return &App{
 		logger: zapLogger,
 		db:     db,
+		server: server,
 	}
 }
 
@@ -61,19 +71,11 @@ func (a *App) Run(port string) {
 
 	d := domain.NewDomain(a.logger, usersRepository, waybillsRepository, driversRepository, carsRepository)
 
-	app := fiber.New(fiber.Config{
-		ServerHeader:          "Fiber",
-		BodyLimit:             4 * 1024 * 1024,
-		Concurrency:           256 * 1024,
-		ReadTimeout:           2 * time.Minute,
-		WriteTimeout:          2 * time.Minute,
-		DisableStartupMessage: false,
-	})
-	app.Use(cors.New(cors.Config{
+	a.server.Use(cors.New(cors.Config{
 		AllowCredentials: true,
 		AllowMethods:     "GET,POST",
 	}))
-	app.Use(compress.New(compress.Config{
+	a.server.Use(compress.New(compress.Config{
 		Level: compress.LevelBestSpeed,
 	}))
 	/*app.Use(csrf.New(csrf.Config{
@@ -85,7 +87,7 @@ func (a *App) Run(port string) {
 		KeyGenerator:   utils.UUIDv4,
 		ContextKey:     "csrf_waybill",
 	}))*/
-	app.Use(limiter.New(limiter.Config{
+	a.server.Use(limiter.New(limiter.Config{
 		Next: func(c *fiber.Ctx) bool {
 			return c.IP() == "127.0.0.1"
 		},
@@ -98,7 +100,7 @@ func (a *App) Run(port string) {
 			return c.SendStatus(fiber.StatusTooManyRequests)
 		},
 	}))
-	app.Use(middleware.Auth(d))
+	a.server.Use(middleware.Auth(d))
 
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{
 		Resolvers: &graph.Resolver{Domain: d},
@@ -107,12 +109,13 @@ func (a *App) Run(port string) {
 	gqlHandler := srv.Handler()
 	pg := playground.Handler("GraphQL playground", "/query")
 
-	app.All("/query", func(c *fiber.Ctx) error {
+	a.server.All("/query", func(c *fiber.Ctx) error {
+		c.Locals("serverContext", c)
 		gqlHandler(c.Context())
 		return nil
 	})
 
-	app.All("/", func(c *fiber.Ctx) error {
+	a.server.All("/", func(c *fiber.Ctx) error {
 		pg(c.Context())
 		return nil
 	})
@@ -121,7 +124,7 @@ func (a *App) Run(port string) {
 
 	// Listen from a different goroutine
 	go func() {
-		if err := app.Listen(":" + port); err != nil {
+		if err := a.server.Listen(":" + port); err != nil {
 			a.logger.Fatal(fmt.Sprintf("%+v", err))
 		}
 	}()
@@ -131,7 +134,7 @@ func (a *App) Run(port string) {
 
 	_ = <-c // This blocks the main thread until an interrupt is received
 	a.logger.Info("Gracefully shutting down...")
-	_ = app.Shutdown()
+	_ = a.server.Shutdown()
 
 	a.logger.Info("Running cleanup tasks...")
 	// Your cleanup tasks go here
