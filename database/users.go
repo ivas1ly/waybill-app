@@ -37,8 +37,8 @@ func (u *UsersRepository) GetUsers(limit, offset *int) ([]*models.User, error) {
 	if offset != nil {
 		result.Offset(*offset)
 	}
-	err := result.Find(&users).Error
-	if err != nil {
+
+	if err := result.Find(&users).Error; err != nil {
 		return nil, err
 	}
 
@@ -52,12 +52,28 @@ func (u *UsersRepository) CreateUser(user *models.User) (*models.User, error) {
 	return user, nil
 }
 
-func (u *UsersRepository) DeleteUser(user *models.User) (*models.User, error) {
-	err := u.DB.Where("id = ?", user.ID).Delete(&user).Error
-	return user, err
+func (u *UsersRepository) DeleteUser(id string) (string, error) {
+	if err := u.DB.Where("id = ?", id).Delete(&models.User{}).Error; err != nil {
+		return "", err
+	}
+	return "User successfully deleted.", nil
 }
 
-func (u *UsersRepository) UpdateUser(user *models.User) (*models.User, error) {
-	err := u.DB.Save(&user).Error
-	return user, err
+func (u *UsersRepository) UpdateUser(id string, user *models.User) (*models.User, error) {
+
+	if err := u.DB.Model(&user).Where("id = ?", id).Updates(models.User{
+		Email:    user.Email,
+		Password: user.Password,
+		Role:     user.Role,
+	}).Error; err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func (u *UsersRepository) UpdateRefresh(user *models.User, refreshToken string) (*models.User, error) {
+	if err := u.DB.Model(&user).Update("refresh_token", refreshToken).Error; err != nil {
+		return nil, err
+	}
+	return user, nil
 }

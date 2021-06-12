@@ -15,7 +15,7 @@ func Auth(d *domain.Domain) fiber.Handler {
 		SigningKey: []byte(viper.GetString("auth.signing_key")),
 		SuccessHandler: func(c *fiber.Ctx) error {
 			d.Logger.Info("Valid JWT")
-			u := c.Locals("user").(*jwt.Token)
+			u := c.Locals("user").(*jwt.Token) //?
 			claims := u.Claims.(jwt.MapClaims)
 
 			user, err := d.UsersRepository.GetUserByID(claims["sub"].(string))
