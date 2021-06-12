@@ -10,9 +10,10 @@ enum Role {
 
 "Сгенерированный сервером Access Token и Refresh Token для обновления."
 type Token {
-  token: String!
-  expiredAt: String!
+  accessToken: String!
+  accessExpiredAt: String!
   refreshToken: String!
+  refreshExpiredAt: String!
 }
 
 "Результат проверки Access Token и пользователь, для которого он был создан."
@@ -264,7 +265,6 @@ input PeriodFilter {
 type Mutation {
   login(input: Login!): AuthResponse!
   refreshToken: AuthResponse!
-  logout: String!
   createUser(input: NewUser!): User!
   updateUser(id: ID!, input: UpdateUser!): User!
   editUser(id: ID!, input: EditUser!): User!
