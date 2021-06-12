@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 // Водитель.
 type Driver struct {
@@ -18,6 +22,8 @@ type Driver struct {
 	CreatedAt time.Time `json:"createdAt"`
 	// Дата последнего обновления данных водителя.
 	UpdatedAt time.Time `json:"updatedAt"`
+	// Soft-delete, дата удаления из БД.
+	DeletedAt gorm.DeletedAt
 }
 
 // Создание нового водителя.

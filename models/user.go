@@ -3,6 +3,8 @@ package models
 import (
 	"time"
 
+	"gorm.io/gorm"
+
 	"github.com/spf13/viper"
 
 	"github.com/gofrs/uuid"
@@ -29,6 +31,8 @@ type User struct {
 	CreatedAt time.Time `json:"createdAt"`
 	// Дата последнего обновления данных пользователя.
 	UpdatedAt time.Time `json:"updatedAt"`
+	// Soft-delete, дата удаления из БД.
+	DeletedAt gorm.DeletedAt
 }
 
 // Создание нового пользователя. Только администратор
@@ -77,10 +81,10 @@ func (u *User) GenerateTokenPair() (map[string]string, error) {
 	}
 
 	//expiresAt := time.Now().Add(time.Minute * 30)
-	expiresAt := time.Now().Add(time.Hour * 24) //for dev only
+	accessExpiresAt := time.Now().Add(time.Hour * 24) //for dev only
 
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
-		ExpiresAt: expiresAt.Unix(),
+		ExpiresAt: accessExpiresAt.Unix(),
 		Id:        id.String(),
 		IssuedAt:  time.Now().Unix(),
 		Issuer:    "waybill-app",
@@ -95,7 +99,8 @@ func (u *User) GenerateTokenPair() (map[string]string, error) {
 	refresh := jwt.New(jwt.SigningMethodHS256)
 	refreshClaims := refresh.Claims.(jwt.MapClaims)
 	refreshClaims["sub"] = u.ID
-	refreshClaims["exp"] = time.Now().Add(time.Hour * 720).Unix() //720 hours = 30 days = 1 month
+	refreshExpiresAt := time.Now().Add(time.Hour * 720)
+	refreshClaims["exp"] = refreshExpiresAt.Unix() //720 hours = 30 days = 1 month
 
 	refreshToken, err := refresh.SignedString([]byte(viper.GetString("auth.signing_key")))
 	if err != nil {
@@ -103,8 +108,9 @@ func (u *User) GenerateTokenPair() (map[string]string, error) {
 	}
 
 	return map[string]string{
-		"accessToken":  token,
-		"expiresAt":    expiresAt.Format(time.RFC3339),
-		"refreshToken": refreshToken,
+		"accessToken":      token,
+		"accessExpiresAt":  accessExpiresAt.Format(time.RFC3339),
+		"refreshToken":     refreshToken,
+		"refreshExpiresAt": refreshExpiresAt.Format(time.RFC3339),
 	}, nil
 }

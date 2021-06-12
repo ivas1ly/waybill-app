@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type Waybill struct {
 	// Идентификатор путевого листа.
@@ -39,6 +43,8 @@ type Waybill struct {
 	CreatedAt time.Time `json:"createdAt"`
 	// Дата последнего обновления данных в путевом листе.
 	UpdatedAt time.Time `json:"updatedAt"`
+	// Soft-delete, дата удаления из БД.
+	DeletedAt gorm.DeletedAt
 }
 
 // Создание нового путевого листа.
