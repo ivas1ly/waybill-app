@@ -1,6 +1,8 @@
 package graph
 
-import "github.com/ivas1ly/waybill-app/domain"
+import (
+	"github.com/ivas1ly/waybill-app/domain"
+)
 
 // This file will not be regenerated automatically.
 //

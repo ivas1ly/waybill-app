@@ -43,9 +43,10 @@ type TableFilter struct {
 
 // Сгенерированный сервером Access Token и Refresh Token для обновления.
 type Token struct {
-	Token        string `json:"token"`
-	ExpiredAt    string `json:"expiredAt"`
-	RefreshToken string `json:"refreshToken"`
+	AccessToken      string `json:"accessToken"`
+	AccessExpiredAt  string `json:"accessExpiredAt"`
+	RefreshToken     string `json:"refreshToken"`
+	RefreshExpiredAt string `json:"refreshExpiredAt"`
 }
 
 // Роли сервиса.

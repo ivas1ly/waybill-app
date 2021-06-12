@@ -2,7 +2,6 @@ package domain
 
 import (
 	"github.com/ivas1ly/waybill-app/database"
-	"github.com/ivas1ly/waybill-app/models"
 	"go.uber.org/zap"
 )
 
@@ -25,12 +24,4 @@ func NewDomain(logger *zap.Logger, usersRepository database.UsersRepository,
 		DriversRepository:  driversRepository,
 		CarsRepository:     carsRepository,
 	}
-}
-
-type Roles interface {
-	HasRole(user *models.User) models.Role
-}
-
-func checkRole(r Roles, user *models.User) models.Role {
-	return r.HasRole(user)
 }

@@ -16,27 +16,23 @@ func (r *mutationResolver) Login(ctx context.Context, input models.Login) (*mode
 }
 
 func (r *mutationResolver) RefreshToken(ctx context.Context) (*models.AuthResponse, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *mutationResolver) Logout(ctx context.Context) (string, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Domain.Refresh(ctx)
 }
 
 func (r *mutationResolver) CreateUser(ctx context.Context, input models.NewUser) (*models.User, error) {
-	return r.Domain.CreateUser(ctx, input)
+	return r.Domain.NewUser(ctx, input)
 }
 
 func (r *mutationResolver) UpdateUser(ctx context.Context, id string, input models.UpdateUser) (*models.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Domain.UpdateUser(ctx, id, input)
 }
 
 func (r *mutationResolver) EditUser(ctx context.Context, id string, input models.EditUser) (*models.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Domain.EditUser(ctx, id, input)
 }
 
 func (r *mutationResolver) DeleteUser(ctx context.Context, id string) (string, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Domain.DeleteUser(ctx, id)
 }
 
 func (r *mutationResolver) CreateDriver(ctx context.Context, input models.NewDriver) (*models.Driver, error) {
