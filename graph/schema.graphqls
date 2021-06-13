@@ -80,7 +80,7 @@ type Car {
   "Вид топлива."
   fuel: String!
   "Пробег."
-  mileage: Int!
+  mileage: Float!
   "Норма расхода."
   fuelConsumption: Float!
   "Остаток топлива."
@@ -105,13 +105,13 @@ type Waybill {
   "Дата и время закрытия путевого листа."
   dateEnd: Time
   "Показания спидометра при выезде."
-  mileageStart: Int!
+  mileageStart: Float!
   "Показания спидометра при заезде."
-  mileageEnd: Int
+  mileageEnd: Float
   "Заправлено топлива."
-  fuelFill: Float!
+  fuelFill: Float
   "Расход топлива по факту"
-  fuelConsumptionFact: Float!
+  fuelConsumptionFact: Float
   "Остаток топлива при выезде."
   fuelRemainingStart: Float!
   "Остаток топлива при заезде."
@@ -132,6 +132,10 @@ type Waybill {
 
 "Создание нового путевого листа."
 input NewWaybill {
+  "Идентификатор водителя."
+  driverID: ID!
+  "Идентификатор машины."
+  carID: ID!
   "Остаток топлива при выезде."
   fuelRemaining: Float!
   "Дата и время создания путевого листа."
@@ -140,10 +144,14 @@ input NewWaybill {
 
 "Обновление существующего путевого листа водителем."
 input UpdateWaybill {
+  "Заправлено топлива."
+  fuelFill: Float!
   "Показания спидометра при заезде."
-  mileageEnd: Int!
-  "Остаток топлива при заезде."
-  fuelRemaining: Float!
+  mileageEnd: Float!
+  "Расход топлива по факту"
+  fuelConsumptionFact: Float!
+  "Дата и время закрытия путевого листа."
+  dateEnd: Time
 }
 
 "Создание нового пользователя. Только администратор"
@@ -178,7 +186,7 @@ input NewCar {
   "Тип топлива для заправки."
   fuel: String!
   "Текущий пробег машины."
-  mileage: Int!
+  mileage: Float!
   "Текущий остаток топлива."
   fuelRemaining: Float!
   "Норма расхода топлива."
@@ -194,7 +202,7 @@ input UpdateCar {
   "Топливо для заправки."
   fuel: String
   "Текущий пробега машины."
-  mileage: Int
+  mileage: Float
   "Текущий остаток топлива."
   fuelRemaining: Float
   "Норма расхода топлива."
@@ -236,9 +244,9 @@ input EditWaybill {
   "Дата и время закрытия путевого листа."
   dateEnd: Time
   "Показания спидометра при выезде."
-  mileageStart: Int
+  mileageStart: Float
   "Показания спидометра при заезде."
-  mileageEnd: Int
+  mileageEnd: Float
   "Заправлено топлива."
   fuelFill: Float
   "Расход топлива по факту"

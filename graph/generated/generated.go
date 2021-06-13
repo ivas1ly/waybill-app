@@ -954,7 +954,7 @@ type Car {
   "Вид топлива."
   fuel: String!
   "Пробег."
-  mileage: Int!
+  mileage: Float!
   "Норма расхода."
   fuelConsumption: Float!
   "Остаток топлива."
@@ -979,13 +979,13 @@ type Waybill {
   "Дата и время закрытия путевого листа."
   dateEnd: Time
   "Показания спидометра при выезде."
-  mileageStart: Int!
+  mileageStart: Float!
   "Показания спидометра при заезде."
-  mileageEnd: Int
+  mileageEnd: Float
   "Заправлено топлива."
-  fuelFill: Float!
+  fuelFill: Float
   "Расход топлива по факту"
-  fuelConsumptionFact: Float!
+  fuelConsumptionFact: Float
   "Остаток топлива при выезде."
   fuelRemainingStart: Float!
   "Остаток топлива при заезде."
@@ -1006,6 +1006,10 @@ type Waybill {
 
 "Создание нового путевого листа."
 input NewWaybill {
+  "Идентификатор водителя."
+  driverID: ID!
+  "Идентификатор машины."
+  carID: ID!
   "Остаток топлива при выезде."
   fuelRemaining: Float!
   "Дата и время создания путевого листа."
@@ -1014,10 +1018,14 @@ input NewWaybill {
 
 "Обновление существующего путевого листа водителем."
 input UpdateWaybill {
+  "Заправлено топлива."
+  fuelFill: Float!
   "Показания спидометра при заезде."
-  mileageEnd: Int!
-  "Остаток топлива при заезде."
-  fuelRemaining: Float!
+  mileageEnd: Float!
+  "Расход топлива по факту"
+  fuelConsumptionFact: Float!
+  "Дата и время закрытия путевого листа."
+  dateEnd: Time
 }
 
 "Создание нового пользователя. Только администратор"
@@ -1052,7 +1060,7 @@ input NewCar {
   "Тип топлива для заправки."
   fuel: String!
   "Текущий пробег машины."
-  mileage: Int!
+  mileage: Float!
   "Текущий остаток топлива."
   fuelRemaining: Float!
   "Норма расхода топлива."
@@ -1068,7 +1076,7 @@ input UpdateCar {
   "Топливо для заправки."
   fuel: String
   "Текущий пробега машины."
-  mileage: Int
+  mileage: Float
   "Текущий остаток топлива."
   fuelRemaining: Float
   "Норма расхода топлива."
@@ -1110,9 +1118,9 @@ input EditWaybill {
   "Дата и время закрытия путевого листа."
   dateEnd: Time
   "Показания спидометра при выезде."
-  mileageStart: Int
+  mileageStart: Float
   "Показания спидометра при заезде."
-  mileageEnd: Int
+  mileageEnd: Float
   "Заправлено топлива."
   fuelFill: Float
   "Расход топлива по факту"
@@ -1950,9 +1958,9 @@ func (ec *executionContext) _Car_mileage(ctx context.Context, field graphql.Coll
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(float64)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Car_fuelConsumption(ctx context.Context, field graphql.CollectedField, obj *models.Car) (ret graphql.Marshaler) {
@@ -4045,9 +4053,9 @@ func (ec *executionContext) _Waybill_mileageStart(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(float64)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Waybill_mileageEnd(ctx context.Context, field graphql.CollectedField, obj *models.Waybill) (ret graphql.Marshaler) {
@@ -4077,9 +4085,9 @@ func (ec *executionContext) _Waybill_mileageEnd(ctx context.Context, field graph
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*int)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Waybill_fuelFill(ctx context.Context, field graphql.CollectedField, obj *models.Waybill) (ret graphql.Marshaler) {
@@ -4107,14 +4115,11 @@ func (ec *executionContext) _Waybill_fuelFill(ctx context.Context, field graphql
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Waybill_fuelConsumptionFact(ctx context.Context, field graphql.CollectedField, obj *models.Waybill) (ret graphql.Marshaler) {
@@ -4142,14 +4147,11 @@ func (ec *executionContext) _Waybill_fuelConsumptionFact(ctx context.Context, fi
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(float64)
 	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOFloat2float64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Waybill_fuelRemainingStart(ctx context.Context, field graphql.CollectedField, obj *models.Waybill) (ret graphql.Marshaler) {
@@ -5594,7 +5596,7 @@ func (ec *executionContext) unmarshalInputEditWaybill(ctx context.Context, obj i
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mileageStart"))
-			it.MileageStart, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			it.MileageStart, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5602,7 +5604,7 @@ func (ec *executionContext) unmarshalInputEditWaybill(ctx context.Context, obj i
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mileageEnd"))
-			it.MileageEnd, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			it.MileageEnd, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5722,7 +5724,7 @@ func (ec *executionContext) unmarshalInputNewCar(ctx context.Context, obj interf
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mileage"))
-			it.Mileage, err = ec.unmarshalNInt2int(ctx, v)
+			it.Mileage, err = ec.unmarshalNFloat2float64(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5818,6 +5820,22 @@ func (ec *executionContext) unmarshalInputNewWaybill(ctx context.Context, obj in
 
 	for k, v := range asMap {
 		switch k {
+		case "driverID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("driverID"))
+			it.DriverID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "carID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("carID"))
+			it.CarID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "fuelRemaining":
 			var err error
 
@@ -5958,7 +5976,7 @@ func (ec *executionContext) unmarshalInputUpdateCar(ctx context.Context, obj int
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mileage"))
-			it.Mileage, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			it.Mileage, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6062,19 +6080,35 @@ func (ec *executionContext) unmarshalInputUpdateWaybill(ctx context.Context, obj
 
 	for k, v := range asMap {
 		switch k {
+		case "fuelFill":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fuelFill"))
+			it.FuelFill, err = ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "mileageEnd":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mileageEnd"))
-			it.MileageEnd, err = ec.unmarshalNInt2int(ctx, v)
+			it.MileageEnd, err = ec.unmarshalNFloat2float64(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "fuelRemaining":
+		case "fuelConsumptionFact":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fuelRemaining"))
-			it.FuelRemaining, err = ec.unmarshalNFloat2float64(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fuelConsumptionFact"))
+			it.FuelConsumptionFact, err = ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "dateEnd":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dateEnd"))
+			it.DateEnd, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6657,14 +6691,8 @@ func (ec *executionContext) _Waybill(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Waybill_mileageEnd(ctx, field, obj)
 		case "fuelFill":
 			out.Values[i] = ec._Waybill_fuelFill(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "fuelConsumptionFact":
 			out.Values[i] = ec._Waybill_fuelConsumptionFact(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "fuelRemainingStart":
 			out.Values[i] = ec._Waybill_fuelRemainingStart(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -7129,21 +7157,6 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
-func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
-	res, err := graphql.UnmarshalInt(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
-	res := graphql.MarshalInt(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
-}
-
 func (ec *executionContext) unmarshalNLogin2githubᚗcomᚋivas1lyᚋwaybillᚑappᚋmodelsᚐLogin(ctx context.Context, v interface{}) (models.Login, error) {
 	res, err := ec.unmarshalInputLogin(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -7597,6 +7610,15 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 		return graphql.Null
 	}
 	return graphql.MarshalBoolean(*v)
+}
+
+func (ec *executionContext) unmarshalOFloat2float64(ctx context.Context, v interface{}) (float64, error) {
+	res, err := graphql.UnmarshalFloat(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOFloat2float64(ctx context.Context, sel ast.SelectionSet, v float64) graphql.Marshaler {
+	return graphql.MarshalFloat(v)
 }
 
 func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v interface{}) (*float64, error) {
