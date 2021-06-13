@@ -9,9 +9,19 @@ import (
 )
 
 func (d *Domain) GetUser(ctx context.Context, id string) (*models.User, error) {
-	_, err := d.GetCurrentUserFromCTX(ctx)
+	user, err := d.GetCurrentUserFromCTX(ctx)
 	if err != nil {
 		return nil, err
+	}
+
+	if !user.Role.IsValid() {
+		d.Logger.Error("Forbidden request.")
+		return nil, gqlerror.Errorf("Forbidden.")
+	}
+
+	if (user.Role.String() == models.RoleMechanic.String() ||
+		user.Role.String() == models.RoleDriver.String()) && user.ID != id {
+		return nil, gqlerror.Errorf("Forbidden.")
 	}
 
 	return d.UsersRepository.GetUserByID(id)
@@ -114,4 +124,22 @@ func (d *Domain) DeleteUser(ctx context.Context, id string) (string, error) {
 	}
 
 	return d.UsersRepository.DeleteUser(id)
+}
+
+func (d *Domain) GetAllUsers(ctx context.Context, limit, offset *int) ([]*models.User, error) {
+	user, err := d.GetCurrentUserFromCTX(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if !user.Role.IsValid() {
+		d.Logger.Error("Forbidden request.")
+		return nil, gqlerror.Errorf("Forbidden.")
+	}
+
+	if user.Role.String() != models.RoleAdmin.String() {
+		return nil, gqlerror.Errorf("Forbidden.")
+	}
+
+	return d.UsersRepository.GetAllUsers(limit, offset)
 }

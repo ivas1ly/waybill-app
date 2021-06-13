@@ -27,7 +27,7 @@ func (u *UsersRepository) GetUserByEmail(email string) (*models.User, error) {
 	return u.GetUserByField("email", email)
 }
 
-func (u *UsersRepository) GetUsers(limit, offset *int) ([]*models.User, error) {
+func (u *UsersRepository) GetAllUsers(limit, offset *int) ([]*models.User, error) {
 	var users []*models.User
 
 	result := u.DB.Model(&users)

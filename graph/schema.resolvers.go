@@ -7,14 +7,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/vektah/gqlparser/v2/gqlerror"
-
 	"github.com/ivas1ly/waybill-app/graph/generated"
 	"github.com/ivas1ly/waybill-app/models"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 func (r *mutationResolver) Login(ctx context.Context, input models.Login) (*models.AuthResponse, error) {
-
 	if input.Totp == "" {
 		user, err := r.Domain.UsersRepository.GetUserByEmail(input.Email)
 		if err != nil {
@@ -55,35 +53,35 @@ func (r *mutationResolver) DeleteUser(ctx context.Context, id string) (string, e
 }
 
 func (r *mutationResolver) CreateDriver(ctx context.Context, input models.NewDriver) (*models.Driver, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Domain.NewDriver(ctx, input)
 }
 
 func (r *mutationResolver) UpdateDriver(ctx context.Context, id string, input models.UpdateDriver) (*models.Driver, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Domain.UpdateDriver(ctx, id, input)
 }
 
 func (r *mutationResolver) DeleteDriver(ctx context.Context, id string) (string, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Domain.DeleteDriver(ctx, id)
 }
 
 func (r *mutationResolver) CreateCar(ctx context.Context, input models.NewCar) (*models.Car, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Domain.NewCar(ctx, input)
 }
 
 func (r *mutationResolver) UpdateCar(ctx context.Context, id string, input models.UpdateCar) (*models.Car, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Domain.UpdateCar(ctx, id, input)
 }
 
 func (r *mutationResolver) DeleteCar(ctx context.Context, id string) (string, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Domain.DeleteCar(ctx, id)
 }
 
 func (r *mutationResolver) CreateWaybill(ctx context.Context, input models.NewWaybill) (*models.Waybill, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Domain.NewWaybill(ctx, input)
 }
 
 func (r *mutationResolver) UpdateWaybill(ctx context.Context, id string, input models.UpdateWaybill) (*models.Waybill, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Domain.UpdateWaybill(ctx, id, input)
 }
 
 func (r *mutationResolver) EditWaybill(ctx context.Context, id string, input models.EditWaybill) (*models.Waybill, error) {
@@ -91,11 +89,11 @@ func (r *mutationResolver) EditWaybill(ctx context.Context, id string, input mod
 }
 
 func (r *mutationResolver) DeleteWaybill(ctx context.Context, id string) (string, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Domain.DeleteWaybill(ctx, id)
 }
 
 func (r *queryResolver) AllUsers(ctx context.Context, limit *int, offset *int) ([]*models.User, error) {
-	return r.Domain.UsersRepository.GetUsers(limit, offset)
+	return r.Domain.GetAllUsers(ctx, limit, offset)
 }
 
 func (r *queryResolver) User(ctx context.Context, id string) (*models.User, error) {
@@ -103,35 +101,35 @@ func (r *queryResolver) User(ctx context.Context, id string) (*models.User, erro
 }
 
 func (r *queryResolver) AllDrivers(ctx context.Context, limit *int, offset *int) ([]*models.Driver, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Domain.GetAllDrivers(ctx, limit, offset)
 }
 
 func (r *queryResolver) Driver(ctx context.Context, id string) (*models.Driver, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Domain.GetDriver(ctx, id)
 }
 
 func (r *queryResolver) AllCars(ctx context.Context, limit *int, offset *int) ([]*models.Car, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.AllCars(ctx, limit, offset)
 }
 
 func (r *queryResolver) Car(ctx context.Context, id string) (*models.Car, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Domain.GetCar(ctx, id)
 }
 
 func (r *queryResolver) AllWaybills(ctx context.Context, limit *int, offset *int) ([]*models.Waybill, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Domain.GetAllWaybill(ctx, limit, offset)
 }
 
 func (r *queryResolver) AllWaybillsByUserID(ctx context.Context, id string, limit *int, offset *int) ([]*models.Waybill, error) {
-	return r.Domain.WaybillsRepository.GetWaybillsByUserID(id, limit, offset)
+	return r.Domain.GetAllWaybillsByUserID(ctx, id, limit, offset)
 }
 
 func (r *queryResolver) Waybill(ctx context.Context, id string) (*models.Waybill, error) {
-	return r.Domain.WaybillsRepository.GetWaybillByID(id)
+	return r.Domain.GetWaybill(ctx, id)
 }
 
 func (r *queryResolver) CreateReportTable(ctx context.Context, filter models.TableFilter) (string, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.Domain.CreateTable(ctx, filter)
 }
 
 // Mutation returns generated.MutationResolver implementation.

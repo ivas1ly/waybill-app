@@ -12,16 +12,15 @@ type CarsRepository struct {
 func (c *CarsRepository) GetCars(limit, offset *int) ([]*models.Car, error) {
 	var cars []*models.Car
 
-	result := c.DB.Find(&cars).Order("id")
-
+	result := c.DB.Model(&cars)
 	if limit != nil {
 		result.Limit(*limit)
 	}
 	if offset != nil {
 		result.Offset(*offset)
 	}
-	err := result.Error
-	if err != nil {
+
+	if err := result.Find(&cars).Error; err != nil {
 		return nil, err
 	}
 
@@ -30,16 +29,36 @@ func (c *CarsRepository) GetCars(limit, offset *int) ([]*models.Car, error) {
 
 func (c *CarsRepository) GetCarByID(id string) (*models.Car, error) {
 	var car models.Car
-	err := c.DB.First(&car).Where("%v = ?", id).Error
-	return &car, err
+	if err := c.DB.Where("%v = ?", id).First(&car).Error; err != nil {
+		return nil, err
+	}
+	return &car, nil
 }
 
-func (c *CarsRepository) Update(car *models.Car) (*models.Car, error) {
-	err := c.DB.Save(&car).Error
-	return car, err
+func (c *CarsRepository) CreateCar(car *models.Car) (*models.Car, error) {
+	if err := c.DB.Create(&car).Error; err != nil {
+		return nil, err
+	}
+	return car, nil
 }
 
-func (c *CarsRepository) Delete(car *models.Car) (*models.Car, error) {
-	err := c.DB.Where("id = ?", car.ID).Delete(&car).Error
-	return car, err
+func (c *CarsRepository) UpdateCar(id string, car *models.Car) (*models.Car, error) {
+	if err := c.DB.Model(&car).Where("id = ?", id).Updates(models.Car{
+		Brand:           car.Brand,
+		Number:          car.Number,
+		Fuel:            car.Fuel,
+		Mileage:         car.Mileage,
+		FuelConsumption: car.FuelConsumption,
+		FuelRemaining:   car.FuelRemaining,
+	}).Error; err != nil {
+		return nil, err
+	}
+	return car, nil
+}
+
+func (c *CarsRepository) DeleteCar(id string) (string, error) {
+	if err := c.DB.Where("id = ?", id).Delete(&models.Car{}).Error; err != nil {
+		return "", err
+	}
+	return "Car successfully deleted.", nil
 }
