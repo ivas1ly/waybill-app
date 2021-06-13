@@ -7,11 +7,30 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/vektah/gqlparser/v2/gqlerror"
+
 	"github.com/ivas1ly/waybill-app/graph/generated"
 	"github.com/ivas1ly/waybill-app/models"
 )
 
 func (r *mutationResolver) Login(ctx context.Context, input models.Login) (*models.AuthResponse, error) {
+
+	if input.Totp == "" {
+		user, err := r.Domain.UsersRepository.GetUserByEmail(input.Email)
+		if err != nil {
+			r.Domain.Logger.Error("Bad credentials. Incorrect login.")
+			return nil, gqlerror.Errorf("Incorrect login or password.")
+		}
+
+		err = user.CompareUserPassword(input.Password)
+		if err != nil {
+			r.Domain.Logger.Error("Bad credentials. Incorrect password.")
+			return nil, gqlerror.Errorf("Incorrect login or password.")
+		}
+
+		return nil, nil
+	}
+
 	return r.Domain.LoginUser(ctx, input)
 }
 

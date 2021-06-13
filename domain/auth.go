@@ -27,6 +27,7 @@ import (
 )
 
 func (d *Domain) LoginUser(ctx context.Context, input models.Login) (*models.AuthResponse, error) {
+
 	user, err := d.UsersRepository.GetUserByEmail(input.Email)
 	if err != nil {
 		d.Logger.Error("Bad credentials. Incorrect login.")
@@ -38,6 +39,13 @@ func (d *Domain) LoginUser(ctx context.Context, input models.Login) (*models.Aut
 		d.Logger.Error("Bad credentials. Incorrect password.")
 		return nil, gqlerror.Errorf("Incorrect login or password.")
 	}
+
+	validTOTP := totp.Validate(input.Totp, user.Secret)
+	if !validTOTP {
+		d.Logger.Error("Incorrect totp code.")
+		return nil, gqlerror.Errorf("Incorrect totp code.")
+	}
+
 	token, err := user.GenerateTokenPair()
 	if err != nil {
 		d.Logger.Error("Can't generate token pair.")
