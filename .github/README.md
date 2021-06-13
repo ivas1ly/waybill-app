@@ -16,6 +16,7 @@ go get -u github.com/ivas1ly/waybill-app
   * GORM
   * Gqlgen
   * Zap
+  * [OTP](https://github.com/pquerna/otp/)
 * PostgreSQL
 
 ## Features
