@@ -20,11 +20,11 @@ type Waybill struct {
 	// Дата и время закрытия путевого листа.
 	DateEnd time.Time `json:"dateEnd"`
 	// Показания спидометра при выезде.
-	MileageStart int `json:"mileageStart" gorm:"type:integer;not null;"`
+	MileageStart float64 `json:"mileageStart" gorm:"type:integer;not null;"`
 	// Показания спидометра при заезде.
-	MileageEnd *int `json:"mileageEnd" gorm:"type:integer;"`
+	MileageEnd *float64 `json:"mileageEnd" gorm:"type:integer;"`
 	// Заправлено топлива.
-	FuelFill float64 `json:"fuelFill"`
+	FuelFill *float64 `json:"fuelFill"`
 	// Расход топлива по факту
 	FuelConsumptionFact float64 `json:"fuelConsumptionFact"`
 	// Остаток топлива при выезде.
@@ -49,6 +49,10 @@ type Waybill struct {
 
 // Создание нового путевого листа.
 type NewWaybill struct {
+	// Идентификатор водителя.
+	DriverID string `json:"driverID"`
+	// Идентификатор машины.
+	CarID string `json:"carID"`
 	// Остаток топлива при выезде.
 	FuelRemaining float64 `json:"fuelRemaining"`
 	// Дата и время создания путевого листа.
@@ -57,10 +61,14 @@ type NewWaybill struct {
 
 // Обновление существующего путевого листа водителем.
 type UpdateWaybill struct {
+	// Заправлено топлива.
+	FuelFill float64 `json:"fuelFill"`
 	// Показания спидометра при заезде.
-	MileageEnd int `json:"mileageEnd"`
-	// Остаток топлива при заезде.
-	FuelRemaining float64 `json:"fuelRemaining"`
+	MileageEnd float64 `json:"mileageEnd"`
+	// Расход топлива по факту
+	FuelConsumptionFact float64 `json:"fuelConsumptionFact"`
+	// Дата и время закрытия путевого листа.
+	DateEnd *time.Time `json:"dateEnd"`
 }
 
 // Редактирование путевого листа. Только для механика.
@@ -76,9 +84,9 @@ type EditWaybill struct {
 	// Дата и время закрытия путевого листа.
 	DateEnd *time.Time `json:"dateEnd"`
 	// Показания спидометра при выезде.
-	MileageStart *int `json:"mileageStart"`
+	MileageStart *float64 `json:"mileageStart"`
 	// Показания спидометра при заезде.
-	MileageEnd *int `json:"mileageEnd"`
+	MileageEnd *float64 `json:"mileageEnd"`
 	// Заправлено топлива.
 	FuelFill *float64 `json:"fuelFill"`
 	// Расход топлива по факту

@@ -17,7 +17,7 @@ type Car struct {
 	// Вид топлива.
 	Fuel string `json:"fuel" gorm:"size:15;"`
 	// Пробег.
-	Mileage int `json:"mileage" gorm:"type:integer;not null;"`
+	Mileage float64 `json:"mileage" gorm:"type:integer;not null;"`
 	// Норма расхода.
 	FuelConsumption float64 `json:"fuelConsumption;not null;"`
 	// Остаток топлива.
@@ -39,7 +39,7 @@ type NewCar struct {
 	// Тип топлива для заправки.
 	Fuel string `json:"fuel"`
 	// Текущий пробег машины.
-	Mileage int `json:"mileage"`
+	Mileage float64 `json:"mileage"`
 	// Текущий остаток топлива.
 	FuelRemaining float64 `json:"fuelRemaining"`
 	// Норма расхода топлива.
@@ -55,7 +55,7 @@ type UpdateCar struct {
 	// Топливо для заправки.
 	Fuel *string `json:"fuel"`
 	// Текущий пробега машины.
-	Mileage *int `json:"mileage"`
+	Mileage *float64 `json:"mileage"`
 	// Текущий остаток топлива.
 	FuelRemaining *float64 `json:"fuelRemaining"`
 	// Норма расхода топлива.
