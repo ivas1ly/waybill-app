@@ -1,8 +1,6 @@
 package database
 
 import (
-	"fmt"
-
 	"github.com/ivas1ly/waybill-app/models"
 	"gorm.io/gorm"
 )
@@ -14,7 +12,7 @@ type DriversRepository struct {
 func (d *DriversRepository) GetDrivers(limit, offset *int) ([]*models.Driver, error) {
 	var drivers []*models.Driver
 
-	result := d.DB.Find(&drivers)
+	result := d.DB.Model(&drivers)
 
 	if limit != nil {
 		result.Limit(*limit)
@@ -22,8 +20,8 @@ func (d *DriversRepository) GetDrivers(limit, offset *int) ([]*models.Driver, er
 	if offset != nil {
 		result.Offset(*offset)
 	}
-	err := result.Error
-	if err != nil {
+
+	if err := result.Find(&drivers).Error; err != nil {
 		return nil, err
 	}
 
@@ -31,28 +29,35 @@ func (d *DriversRepository) GetDrivers(limit, offset *int) ([]*models.Driver, er
 }
 
 func (d *DriversRepository) CreateDriver(driver *models.Driver) (*models.Driver, error) {
-	err := d.DB.Create(&driver).Error
-	return driver, err
+	if err := d.DB.Create(&driver).Error; err != nil {
+		return nil, err
+	}
+	return driver, nil
 }
 
 func (d *DriversRepository) GetDriverByID(id string) (*models.Driver, error) {
 	var driver models.Driver
-	err := d.DB.First(&driver).Where("&v = ?", id).Error
-	return &driver, err
+	if err := d.DB.Where("id = ?", id).First(&driver).Error; err != nil {
+		return nil, err
+	}
+	return &driver, nil
 }
 
-func (d *DriversRepository) Update(driver *models.Driver) (*models.Driver, error) {
-	err := d.DB.Save(&driver).Error
-	return driver, err
+func (d *DriversRepository) Update(id string, driver *models.Driver) (*models.Driver, error) {
+	if err := d.DB.Model(&driver).Where("id = ?").Updates(models.Driver{
+		FirstName:  driver.FirstName,
+		SecondName: driver.SecondName,
+		Patronymic: driver.Patronymic,
+		IsActive:   driver.IsActive,
+	}).Error; err != nil {
+		return nil, err
+	}
+	return driver, nil
 }
 
-func (d *DriversRepository) Delete(driver *models.Driver) (*models.Driver, error) {
-	err := d.DB.Where("id = ?", driver.ID).Delete(&driver).Error
-	return driver, err
-}
-
-func (d *DriversRepository) GetDriverByField(field, value string) (*models.Driver, error) {
-	var driver models.Driver
-	err := d.DB.First(&driver).Where(fmt.Sprintf("%v = ?", field), value).Error
-	return &driver, err
+func (d *DriversRepository) Delete(id string) (string, error) {
+	if err := d.DB.Where("id = ?", id).Delete(&models.Driver{}).Error; err != nil {
+		return "", err
+	}
+	return "Driver successfully deleted.", nil
 }
