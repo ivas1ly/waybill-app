@@ -9,7 +9,7 @@ import (
 
 	"github.com/spf13/viper"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v4"
 
 	"github.com/gofiber/fiber/v2"
 
@@ -213,10 +213,10 @@ func (d *Domain) Refresh(ctx context.Context) (*models.AuthResponse, error) {
 		return nil, gqlerror.Errorf("Unauthorized.")
 	}
 
-	if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) > 5*time.Minute {
-		d.Logger.Error("Expired token.")
-		return nil, gqlerror.Errorf("Bad request.")
-	}
+	//if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) > 5*time.Minute {
+	//	d.Logger.Error("Expired token.")
+	//	return nil, gqlerror.Errorf("Bad request.")
+	//}
 
 	user, err := d.UsersRepository.GetUserByID(claims.Subject)
 	if user.RefreshToken != tokenFromJWT.Raw {
