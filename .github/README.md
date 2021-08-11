@@ -5,24 +5,24 @@ Waybill processing service (module) written with Golang.
 
 ## Requirements
 - Go 1.16
-
-```shell
-go get -u github.com/ivas1ly/waybill-app
-```
+- PostgreSQL 13
 
 ## Tech Stack
 * Golang
-  * Fiber
-  * GORM
-  * Gqlgen
-  * Zap
+  * [Fiber](https://github.com/gofiber/fiber)
+  * [GORM](https://github.com/go-gorm/gorm)
+  * [Gqlgen](https://github.com/99designs/gqlgen)
+  * [Zap](https://github.com/uber-go/zap)
   * [OTP](https://github.com/pquerna/otp/)
 * PostgreSQL
 
 ## Features
 
-* 1
-* 2
+* 2fa authentication with OTP and JWT tokens.
+* Auto migrations.
+* Clean Architecture.
+* Creation of reports on completed waybills.
+* GraphQL API.
 
 ## License
 
